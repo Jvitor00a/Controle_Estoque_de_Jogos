@@ -2,6 +2,7 @@
 #define REGISTRO_H
 
 #include <string.h>
+#include "lista.h"
 
 typedef enum TipoResultado
 {
@@ -15,19 +16,17 @@ typedef struct ResultadoTransacao
     char *msg_erro;
 } ResultadoTransacao;
 
-ResultadoTransacao registrar_entrada(int idProduto, int quantidade);
-ResultadoTransacao registrar_saida(int idProduto, int quantidade);
+ResultadoTransacao RegistrarEntradaProduto(int idProduto, int quantidade);
+ResultadoTransacao RegistrarSaidaProduto(int idProduto, int quantidade);
 
-typedef struct Contagem {
+typedef struct Contagem
+{
     int idProduto, quantidade;
 } Contagem;
 
-typedef struct ResultadoContagem
-{
-    int num_produtos;
-    Contagem *produtos;
-} ResultadoContagem;
-
-ResultadoContagem *contar_estoque();
+/**
+ * Retorna uma Lista onde cada Item é do tipo Contagem
+ */
+Lista *ContarEstoque();
 
 #endif

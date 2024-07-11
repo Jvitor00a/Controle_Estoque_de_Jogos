@@ -3,11 +3,16 @@
 
 int main()
 {
-    ResultadoContagem *resultado = contar_estoque();
+    Lista *resultado = ContarEstoque();
 
-    for (int i = 0; i < resultado->num_produtos; i++)
+    ItemLista *atual = resultado->primeiro;
+
+    printf("Encontrados %d produtos em estoque\n", resultado->tamanho);
+
+    for (int i = 0; i < resultado->tamanho && atual != NULL; i++, atual = atual->proximo)
     {
-        printf("Produto: ID#%d Qtd: %d\n", resultado->produtos[i].idProduto, resultado->produtos[i].quantidade);
+        Contagem *cont = (Contagem *)atual->dados;
+        printf("Produto: ID#%d Qtd: %d\n", cont->idProduto, cont->quantidade);
     }
 
     return 0;

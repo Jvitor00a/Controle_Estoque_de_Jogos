@@ -14,4 +14,6 @@ file(GLOB all_SRCS
         "${PROJECT_SOURCE_DIR}/src/*.c"
         )
 
+set(CMAKE_BUILD_TYPE Debug)
+        
 add_executable(LojaJogos ${all_SRCS})
