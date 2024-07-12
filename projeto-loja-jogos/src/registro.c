@@ -89,8 +89,7 @@ Lista *ContarEstoque()
         if (item == NULL)
         {
             Contagem *cont = (Contagem *)malloc(sizeof(Contagem));
-            cont->idProduto = id;
-            cont->quantidade = qtd;
+            *cont = (Contagem){.idProduto = id, .quantidade = qtd};
             ListaAcrescentar(resultados, cont);
         }
         else
