@@ -46,6 +46,7 @@ ItemLista *ListaAcrescentar(Lista *lista, void *dados)
     }
 
     lista->ultimo->proximo = novoItem;
+    lista->ultimo = novoItem;
     lista->tamanho++;
 
     return lista->ultimo;
