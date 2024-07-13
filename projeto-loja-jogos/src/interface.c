@@ -18,7 +18,7 @@ typedef enum InterfaceRotas
 typedef struct ContextoRotaEstoque
 {
     int ListaJogosScrollIndex;
-    int ListaJogosAtiva;
+    int ListaJogosSelecionado;
     bool SpinnerQtdEditando;
     int SpinnerQtdValor;
     char ListaJogosTexto[1000];
@@ -40,13 +40,19 @@ typedef struct Rota
 } Rota;
 
 Rota lista_rotas[] = {
-    {.nome = "Vender", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarContexto = InicializarContextoEstoque}};
+    {.nome = "Vender"},
+    {.nome = "Produtos"},
+    {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarContexto = InicializarContextoEstoque},
+    {.nome = "Relatorios"}};
+
+const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
 
 void RenderizarRotaEstoque(void *contexto)
 {
     ContextoRotaEstoque *cx = (ContextoRotaEstoque *)contexto;
 
-    GuiListView((Rectangle){8, 56, 384, 312}, cx->ListaJogosTexto, &cx->ListaJogosScrollIndex, &cx->ListaJogosAtiva);
+    GuiLabel((Rectangle){8, 36, 120, 24}, "Jogos");
+    GuiListView((Rectangle){8, 56, 384, 312}, cx->ListaJogosTexto, &cx->ListaJogosScrollIndex, &cx->ListaJogosSelecionado);
     GuiGroupBox((Rectangle){400, 48, 192, 320}, "Detalhes");
     if (GuiButton((Rectangle){408, 336, 88, 24}, "Cancelar"))
         Button007();
@@ -54,38 +60,56 @@ void RenderizarRotaEstoque(void *contexto)
         Button008();
     if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &cx->SpinnerQtdValor, 0, 100, cx->SpinnerQtdEditando))
         cx->SpinnerQtdEditando = !cx->SpinnerQtdEditando;
-    GuiLabel((Rectangle){8, 32, 120, 24}, "Jogos");
 }
 
 void *InicializarContextoEstoque()
 {
     ContextoRotaEstoque *cx = malloc(sizeof(ContextoRotaEstoque));
 
+    // TODO: Adicionar o resultado da última contagem de estoque ao contexto para fácil acesso
     *cx = (ContextoRotaEstoque){
-        .ListaJogosAtiva = false,
+        .ListaJogosSelecionado = 0,
         .ListaJogosScrollIndex = 0,
         .ListaJogosTexto = "",
         .SpinnerQtdEditando = false,
         .SpinnerQtdValor = 0,
     };
 
+    PopularListaJogos(cx->ListaJogosTexto);
+
     return cx;
 }
 
-void InicializarContextosRotas(void **cx_out)
+void InicializarContextosRotas(void **contextos_out)
 {
-    const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
     for (int i = 0; i < num_rotas; i++)
     {
-        cx_out[i] = lista_rotas[i].fnInicializarContexto();
+        if (lista_rotas[i].fnInicializarContexto == NULL)
+            contextos_out[i] = NULL;
+        else
+            contextos_out[i] = lista_rotas[i].fnInicializarContexto();
     }
 }
 
-char *rotas[] = {"Vender, Produtos, Estoque, Relatorios"};
-
-void RenderizarRotaSelecionada(int rota_selecionada, void **contextos)
+void RenderizarRotaSelecionada(int idx_rota_selecionada, void **contextos)
 {
-    lista_rotas[rota_selecionada].fnRenderizarRota(contextos[rota_selecionada]);
+    if (idx_rota_selecionada < 0 || idx_rota_selecionada >= num_rotas)
+    {
+        TraceLog(LOG_ERROR, "Tentativa de renderizar rota #%d porem a aplicacao so possui %d rotas registradas", idx_rota_selecionada, num_rotas);
+        return;
+    }
+
+    printf("Renderizando rota #%d: ", idx_rota_selecionada);
+
+    Rota rota_selecionada = lista_rotas[idx_rota_selecionada];
+    void *cx = contextos[idx_rota_selecionada];
+
+    printf("%s\n", rota_selecionada.nome);
+
+    if (cx == NULL || rota_selecionada.fnInicializarContexto == NULL)
+        return;
+
+    rota_selecionada.fnRenderizarRota(cx);
 }
 
 void RodarInterface()
@@ -98,7 +122,7 @@ void RodarInterface()
     int screenWidth = 600;
     int screenHeight = 380;
 
-    InitWindow(screenWidth, screenHeight, "tela principal");
+    InitWindow(screenWidth, screenHeight, "Games Warehouse");
     SetTargetFPS(60);
 
     // tela principal: controls initialization
@@ -108,7 +132,7 @@ void RodarInterface()
 
     const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
 
-    printf("A aplicacao possui %d rotas\n", num_rotas);
+    printf("A aplicacao possui %d rota(s)\n", num_rotas);
 
     PopularListaRotas(ListaRotasTexto);
 
@@ -132,8 +156,8 @@ void RodarInterface()
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
 
-        GuiToggleGroup((Rectangle){168, 8, 104, 32}, ListaRotasTexto, &RotaSelecionada);
-        GuiLabel((Rectangle){8, 8, 160, 32}, "Ola, {{Nome}}}");
+        GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32}, ListaRotasTexto, &RotaSelecionada);
+        // GuiLabel((Rectangle){8, 8, 160, 32}, "Ola, {{Nome}}}");
         RenderizarRotaSelecionada(RotaSelecionada, contextos);
 
         //----------------------------------------------------------------------------------
