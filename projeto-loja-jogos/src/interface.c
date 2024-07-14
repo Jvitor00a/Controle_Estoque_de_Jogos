@@ -3,6 +3,7 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #include "registro.h"
+#include "rota.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -24,92 +25,40 @@ typedef struct ContextoRotaEstoque
     char ListaJogosTexto[1000];
 } ContextoRotaEstoque;
 
-void RenderizarRotaEstoque(void *);
-void *InicializarContextoEstoque();
-
-static void Button007(); // Button: Button007 logic
-static void Button008(); // Button: Button008 logic
 static void PopularListaJogos(char *);
 static void PopularListaRotas(char *);
-
-typedef struct Rota
-{
-    char *nome;
-    void (*fnRenderizarRota)(void *);
-    void *(*fnInicializarContexto)();
-} Rota;
 
 Rota lista_rotas[] = {
     {.nome = "Vender"},
     {.nome = "Produtos"},
-    {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarContexto = InicializarContextoEstoque},
+    {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarRota = InicializarRotaEstoque},
     {.nome = "Relatorios"}};
 
 const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
 
-void RenderizarRotaEstoque(void *contexto)
-{
-    ContextoRotaEstoque *cx = (ContextoRotaEstoque *)contexto;
-
-    GuiLabel((Rectangle){8, 36, 120, 24}, "Jogos");
-    GuiListView((Rectangle){8, 56, 384, 312}, cx->ListaJogosTexto, &cx->ListaJogosScrollIndex, &cx->ListaJogosSelecionado);
-    GuiGroupBox((Rectangle){400, 48, 192, 320}, "Detalhes");
-    if (GuiButton((Rectangle){408, 336, 88, 24}, "Cancelar"))
-        Button007();
-    if (GuiButton((Rectangle){504, 336, 80, 24}, "Salvar"))
-        Button008();
-    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &cx->SpinnerQtdValor, 0, 100, cx->SpinnerQtdEditando))
-        cx->SpinnerQtdEditando = !cx->SpinnerQtdEditando;
-}
-
-void *InicializarContextoEstoque()
-{
-    ContextoRotaEstoque *cx = malloc(sizeof(ContextoRotaEstoque));
-
-    // TODO: Adicionar o resultado da última contagem de estoque ao contexto para fácil acesso
-    *cx = (ContextoRotaEstoque){
-        .ListaJogosSelecionado = 0,
-        .ListaJogosScrollIndex = 0,
-        .ListaJogosTexto = "",
-        .SpinnerQtdEditando = false,
-        .SpinnerQtdValor = 0,
-    };
-
-    PopularListaJogos(cx->ListaJogosTexto);
-
-    return cx;
-}
-
-void InicializarContextosRotas(void **contextos_out)
+void InicializarRotas()
 {
     for (int i = 0; i < num_rotas; i++)
     {
-        if (lista_rotas[i].fnInicializarContexto == NULL)
-            contextos_out[i] = NULL;
-        else
-            contextos_out[i] = lista_rotas[i].fnInicializarContexto();
+        if (lista_rotas[i].fnInicializarRota != NULL)
+            lista_rotas[i].fnInicializarRota();
     }
 }
 
-void RenderizarRotaSelecionada(int idx_rota_selecionada, void **contextos)
+void RenderizarRotaSelecionada(int selecionada)
 {
-    if (idx_rota_selecionada < 0 || idx_rota_selecionada >= num_rotas)
+    if (selecionada < 0 || selecionada >= num_rotas)
     {
-        TraceLog(LOG_ERROR, "Tentativa de renderizar rota #%d porem a aplicacao so possui %d rotas registradas", idx_rota_selecionada, num_rotas);
+        TraceLog(LOG_ERROR, "Tentativa de renderizar rota #%d porem a aplicacao so possui %d rotas registradas", selecionada, num_rotas);
         return;
     }
 
-    printf("Renderizando rota #%d: ", idx_rota_selecionada);
+    Rota rota_selecionada = lista_rotas[selecionada];
 
-    Rota rota_selecionada = lista_rotas[idx_rota_selecionada];
-    void *cx = contextos[idx_rota_selecionada];
+    // printf("Renderizando rota #%d: %s\n", selecionada, rota_selecionada.nome);
 
-    printf("%s\n", rota_selecionada.nome);
-
-    if (cx == NULL || rota_selecionada.fnInicializarContexto == NULL)
-        return;
-
-    rota_selecionada.fnRenderizarRota(cx);
+    if (rota_selecionada.fnRenderizarRota != NULL)
+        rota_selecionada.fnRenderizarRota();
 }
 
 void RodarInterface()
@@ -127,7 +76,7 @@ void RodarInterface()
 
     // tela principal: controls initialization
     //----------------------------------------------------------------------------------
-    int RotaSelecionada = 0;
+    int SelecaoRota = 0;
     char ListaRotasTexto[1000] = "";
 
     const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
@@ -136,8 +85,7 @@ void RodarInterface()
 
     PopularListaRotas(ListaRotasTexto);
 
-    void **contextos = malloc(num_rotas * sizeof(void *));
-    InicializarContextosRotas(contextos);
+    InicializarRotas();
     //----------------------------------------------------------------------------------
 
     // Main game loop
@@ -156,9 +104,9 @@ void RodarInterface()
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
 
-        GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32}, ListaRotasTexto, &RotaSelecionada);
+        GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32}, ListaRotasTexto, &SelecaoRota);
         // GuiLabel((Rectangle){8, 8, 160, 32}, "Ola, {{Nome}}}");
-        RenderizarRotaSelecionada(RotaSelecionada, contextos);
+        RenderizarRotaSelecionada(SelecaoRota);
 
         //----------------------------------------------------------------------------------
 
@@ -175,14 +123,6 @@ void RodarInterface()
 //------------------------------------------------------------------------------------
 // Controls Functions Definitions (local)
 //------------------------------------------------------------------------------------
-static void Button007()
-{
-    // TODO: Implement control logic
-}
-static void Button008()
-{
-    // TODO: Implement control logic
-}
 
 void PopularListaJogos(char *out)
 {

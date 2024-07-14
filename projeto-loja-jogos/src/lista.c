@@ -65,3 +65,24 @@ ItemLista *ListaEncontrar(Lista *lista, CallbackFiltro fnFiltragem)
 
     return NULL;
 }
+
+ItemLista *ListaPosicao(Lista *lista, int pos)
+{
+    if (pos >= lista->tamanho)
+    {
+        printf("Tentativa de indexacao invalida na lista\n");
+        return NULL;
+    }
+
+    ItemLista *item = lista->primeiro;
+    while (pos > 0 && item != NULL)
+    {
+        item = item->proximo;
+        pos--;
+    }
+
+    if (pos == 0)
+        return item;
+
+    return NULL;
+}

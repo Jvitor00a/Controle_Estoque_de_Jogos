@@ -7,7 +7,7 @@
 #define PREFIXO_SAIDA 'S'
 #define FORMATO_LINHA_REGISTRO "%c %d %d\n"
 #define NUM_LINHAS 1000
-#define NUM_PRODUTOS 10
+#define NUM_PRODUTOS 20
 #define QUANTIDADE_MAX 100
 
 void gerar_registro_estoque()

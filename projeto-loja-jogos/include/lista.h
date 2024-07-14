@@ -25,4 +25,6 @@ typedef bool (*CallbackFiltro)(ItemLista *);
 
 ItemLista *ListaEncontrar(Lista *lista, CallbackFiltro filtro);
 
+ItemLista *ListaPosicao(Lista *lista, int pos);
+
 #endif
