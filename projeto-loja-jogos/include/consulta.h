@@ -1,13 +1,7 @@
 #ifndef CONSULTA_H
 #define CONSULTA_H
 
-typedef struct {
-    int id;
-    char nome[100];
-    char categoria[30];
-    float preco;
-    int quantidade;
-} Produto;
+#include "produto.h"
 
 Produto buscarProdutoPorId(int id);
 
