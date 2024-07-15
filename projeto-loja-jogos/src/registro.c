@@ -192,8 +192,8 @@ void InicializarRotaEstoque()
     ListaJogosTexto = NULL; // Initialize to NULL
     PopularListaJogos(&ListaJogosTexto);
 }
-static void Button007(); // Button: Button007 logic
-static void Button008(); // Button: Button008 logic
+static void BotaoCancelarClicado(); // Logica do botao de cancelar
+static void BotaoSalvarClicado();   // Logica do botao de salvar alterações no estoque
 
 void RenderizarRotaEstoque()
 {
@@ -220,18 +220,53 @@ void RenderizarRotaEstoque()
     GuiListView((Rectangle){8, 56, 384, 312}, ListaJogosTexto, &ListaJogosScrollIndex, &PosicaoJogoSelecionado);
     GuiGroupBox((Rectangle){400, 48, 192, 320}, "Detalhes");
     if (GuiButton((Rectangle){408, 336, 88, 24}, "Cancelar"))
-        Button007();
+        BotaoCancelarClicado();
     if (GuiButton((Rectangle){504, 336, 80, 24}, "Salvar"))
-        Button008();
+        BotaoSalvarClicado();
     if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &SpinnerQtdValor, 0, 1000000, SpinnerQtdEditando))
         SpinnerQtdEditando = !SpinnerQtdEditando;
 }
 
-static void Button007()
+static void BotaoCancelarClicado()
 {
-    // TODO: Implement control logic
+    // Reset spinner value to the original value
+    if (UltimaPosicaoSelecionada >= 0)
+    {
+        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, UltimaPosicaoSelecionada);
+        if (itemSelecionado != NULL)
+        {
+            Contagem *c = (Contagem *)itemSelecionado->dados;
+            SpinnerQtdValor = c->quantidade;
+            printf("Alterações canceladas para o produto #%d\n", c->idProduto);
+        }
+    }
 }
-static void Button008()
+
+static void BotaoSalvarClicado()
 {
-    // TODO: Implement control logic
+    // Save the changes to the inventory
+    if (UltimaPosicaoSelecionada >= 0)
+    {
+        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, UltimaPosicaoSelecionada);
+        if (itemSelecionado != NULL)
+        {
+            Contagem *c = (Contagem *)itemSelecionado->dados;
+            int quantidadeAnterior = c->quantidade;
+
+            if (SpinnerQtdValor != quantidadeAnterior)
+            {
+                int diferenca = SpinnerQtdValor - quantidadeAnterior;
+                if (diferenca > 0)
+                {
+                    RegistrarEntradaProduto(c->idProduto, diferenca);
+                }
+                else
+                {
+                    RegistrarSaidaProduto(c->idProduto, -diferenca);
+                }
+                c->quantidade = SpinnerQtdValor;
+                printf("Estoque atualizado para o produto #%d: %d unidades\n", c->idProduto, c->quantidade);
+            }
+        }
+    }
 }
