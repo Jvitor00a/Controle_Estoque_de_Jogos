@@ -3,6 +3,7 @@
 #include "registro.h"
 #include "raylib.h"
 #include "raygui.h"
+#include "lista_contagem.h"
 
 #define ARQUIVO_REGISTRO "registro_estoque.txt"
 #define PREFIXO_ENTRADA 'E'
@@ -66,6 +67,8 @@ Lista *ContarEstoque()
 
     Lista *resultados = CriarLista();
 
+    list_Contagem result = list_Contagem_new(NULL, NULL);
+
     char buffer_leitura[100];
 
     while (1)
@@ -88,6 +91,16 @@ Lista *ContarEstoque()
         idItemProcurado = id;
         ItemLista *item = ListaEncontrar(resultados, FiltrarPorId);
 
+        list_Contagem_node node = list_Contagem_begin(result);
+        Contagem *c;
+
+        while ((c = list_Contagem_node_get(node)) != NULL)
+        {
+            if (c->idProduto == id)
+                break;
+            node = list_Contagem_node_next(node);
+        }
+
         if (item == NULL)
         {
             if (qtd < 0)
@@ -99,6 +112,7 @@ Lista *ContarEstoque()
             Contagem *cont = (Contagem *)malloc(sizeof(Contagem));
             *cont = (Contagem){.idProduto = id, .quantidade = qtd};
             ListaAcrescentar(resultados, cont);
+            list_Contagem_push_back(result, cont);
         }
         else
         {
@@ -129,7 +143,7 @@ Lista *resultadoUltimaContagem;
 
 char string_jogo_id[] = "JOGO#XXXXX";
 const int tamanho_string_jogo_id = sizeof(string_jogo_id) / sizeof(char);
-const int max_jogos_lista = 10000;
+const int max_jogos_lista = 100000;
 
 void PopularListaJogos(char **out)
 {
@@ -149,9 +163,9 @@ void PopularListaJogos(char **out)
         int tamanho_antigo = tamanho_total;
         tamanho_total += tamanho_string_jogo_id;
         if (i->proximo != NULL)
-            tamanho_total += 2; // For "; "
+            tamanho_total += 2; // "; "
 
-        *out = realloc(*out, tamanho_total + 1); // +1 for the null-terminator
+        *out = realloc(*out, tamanho_total + 1); // +1 para o \0
 
         if (*out == NULL)
         {
@@ -169,7 +183,7 @@ void PopularListaJogos(char **out)
     }
 
     if (*out != NULL)
-        (*out)[tamanho_total] = '\0'; // Null-terminate the final string
+        (*out)[tamanho_total] = '\0';
 }
 
 void InicializarRotaEstoque()
@@ -186,7 +200,7 @@ void RenderizarRotaEstoque()
     if (PosicaoJogoSelecionado < 0)
         PosicaoJogoSelecionado = 0;
 
-    if (PosicaoJogoSelecionado != UltimaPosicaoSelecionada) // Verifique se a posição foi alterada
+    if (PosicaoJogoSelecionado != UltimaPosicaoSelecionada) // Verifica se a posição foi alterada
     {
         UltimaPosicaoSelecionada = PosicaoJogoSelecionado;
         ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, PosicaoJogoSelecionado);

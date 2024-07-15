@@ -32,6 +32,7 @@ Rota lista_rotas[] = {
     {.nome = "Vender"},
     {.nome = "Produtos"},
     {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarRota = InicializarRotaEstoque},
+    {.nome = "Pesquisar"},
     {.nome = "Relatorios"}};
 
 const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
