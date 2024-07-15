@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "registro.h"
+#include "raylib.h"
+#include "raygui.h"
+#include "lista_contagem.h"
 
 #define ARQUIVO_REGISTRO "registro_estoque.txt"
 #define PREFIXO_ENTRADA 'E'
@@ -64,6 +67,8 @@ Lista *ContarEstoque()
 
     Lista *resultados = CriarLista();
 
+    list_Contagem result = list_Contagem_new(NULL, NULL);
+
     char buffer_leitura[100];
 
     while (1)
@@ -86,18 +91,147 @@ Lista *ContarEstoque()
         idItemProcurado = id;
         ItemLista *item = ListaEncontrar(resultados, FiltrarPorId);
 
+        list_Contagem_node node = list_Contagem_begin(result);
+        Contagem *c;
+
+        while ((c = list_Contagem_node_get(node)) != NULL)
+        {
+            if (c->idProduto == id)
+                break;
+            node = list_Contagem_node_next(node);
+        }
+
         if (item == NULL)
         {
+            if (qtd < 0)
+            {
+                printf("Tentativa de realizar saída de produto sem estoque, ignorando\n");
+                continue;
+            }
+
             Contagem *cont = (Contagem *)malloc(sizeof(Contagem));
-            cont->idProduto = id;
-            cont->quantidade = qtd;
+            *cont = (Contagem){.idProduto = id, .quantidade = qtd};
             ListaAcrescentar(resultados, cont);
+            list_Contagem_push_back(result, cont);
         }
         else
         {
-            ((Contagem *)item->dados)->quantidade += qtd;
+            Contagem *jogo = ((Contagem *)item->dados);
+            int emEstoque = jogo->quantidade;
+
+            // A checagem a seguir é necessária pois "qtd" pode ser negativo (em caso de saída de produto)
+            if ((qtd + emEstoque) >= 0)
+            {
+                jogo->quantidade += qtd;
+                printf("Adicionadas %d unidades do produto #%d, %dun(s). ao total\n", qtd, jogo->idProduto, jogo->quantidade);
+            }
+            else
+            {
+                printf("Nao e permitido retirar %d produtos de estoque com apenas %d disponiveis\n", qtd, emEstoque);
+                continue;
+            }
         }
     }
 
     return resultados;
+}
+
+int ListaJogosScrollIndex = 0, PosicaoJogoSelecionado = 0, UltimaPosicaoSelecionada = -1, SpinnerQtdValor = 0;
+bool SpinnerQtdEditando = false;
+char *ListaJogosTexto = NULL;
+Lista *resultadoUltimaContagem;
+
+char string_jogo_id[] = "JOGO#XXXXX";
+const int tamanho_string_jogo_id = sizeof(string_jogo_id) / sizeof(char);
+const int max_jogos_lista = 100000;
+
+void PopularListaJogos(char **out)
+{
+    size_t tamanho_total = 0;
+    for (ItemLista *i = resultadoUltimaContagem->primeiro; i != NULL; i = i->proximo)
+    {
+        Contagem *cont = (Contagem *)(i->dados);
+
+        if (cont == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao contar estoque");
+            abort();
+        }
+
+        sprintf(&string_jogo_id[5], "%.5d", cont->idProduto % max_jogos_lista);
+
+        int tamanho_antigo = tamanho_total;
+        tamanho_total += tamanho_string_jogo_id;
+        if (i->proximo != NULL)
+            tamanho_total += 2; // "; "
+
+        *out = realloc(*out, tamanho_total + 1); // +1 para o \0
+
+        if (*out == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao realocar memória");
+            abort();
+        }
+
+        if (tamanho_antigo == 0)
+            strcpy(*out, string_jogo_id);
+        else
+            strcat(*out, string_jogo_id);
+
+        if (i->proximo != NULL)
+            strcat(*out, "; ");
+    }
+
+    if (*out != NULL)
+        (*out)[tamanho_total] = '\0';
+}
+
+void InicializarRotaEstoque()
+{
+    resultadoUltimaContagem = ContarEstoque();
+    ListaJogosTexto = NULL; // Initialize to NULL
+    PopularListaJogos(&ListaJogosTexto);
+}
+static void Button007(); // Button: Button007 logic
+static void Button008(); // Button: Button008 logic
+
+void RenderizarRotaEstoque()
+{
+    if (PosicaoJogoSelecionado < 0)
+        PosicaoJogoSelecionado = 0;
+
+    if (PosicaoJogoSelecionado != UltimaPosicaoSelecionada) // Verifica se a posição foi alterada
+    {
+        UltimaPosicaoSelecionada = PosicaoJogoSelecionado;
+        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, PosicaoJogoSelecionado);
+        if (itemSelecionado != NULL)
+        {
+            Contagem *c = (Contagem *)itemSelecionado->dados;
+            SpinnerQtdValor = c->quantidade;
+            printf("Produto da posicao %d encontrado com sucesso\n", PosicaoJogoSelecionado);
+        }
+        else
+        {
+            printf("Nao foi possivel encontrar o produto na posicao %d\n", PosicaoJogoSelecionado);
+        }
+    }
+
+    GuiLabel((Rectangle){8, 36, 120, 24}, "Jogos");
+    GuiListView((Rectangle){8, 56, 384, 312}, ListaJogosTexto, &ListaJogosScrollIndex, &PosicaoJogoSelecionado);
+    GuiGroupBox((Rectangle){400, 48, 192, 320}, "Detalhes");
+    if (GuiButton((Rectangle){408, 336, 88, 24}, "Cancelar"))
+        Button007();
+    if (GuiButton((Rectangle){504, 336, 80, 24}, "Salvar"))
+        Button008();
+    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &SpinnerQtdValor, 0, __INT_MAX__, SpinnerQtdEditando))
+        SpinnerQtdEditando = !SpinnerQtdEditando;
+}
+
+static void Button007()
+{
+    // TODO: Implement control logic
+}
+static void Button008()
+{
+    // TODO: Implement control logic
 }

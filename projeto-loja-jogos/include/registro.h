@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "lista.h"
+#include "rota.h"
 
 typedef enum TipoResultado
 {
@@ -28,5 +29,8 @@ typedef struct Contagem
  * Retorna uma Lista onde cada Item é do tipo Contagem
  */
 Lista *ContarEstoque();
+
+void RenderizarRotaEstoque();
+void InicializarRotaEstoque();
 
 #endif

@@ -46,6 +46,7 @@ ItemLista *ListaAcrescentar(Lista *lista, void *dados)
     }
 
     lista->ultimo->proximo = novoItem;
+    lista->ultimo = novoItem;
     lista->tamanho++;
 
     return lista->ultimo;
@@ -61,6 +62,27 @@ ItemLista *ListaEncontrar(Lista *lista, CallbackFiltro fnFiltragem)
         if (fnFiltragem(atual))
             return atual;
     }
+
+    return NULL;
+}
+
+ItemLista *ListaPosicao(Lista *lista, int pos)
+{
+    if (pos >= lista->tamanho)
+    {
+        printf("Tentativa de indexacao invalida na lista\n");
+        return NULL;
+    }
+
+    ItemLista *item = lista->primeiro;
+    while (pos > 0 && item != NULL)
+    {
+        item = item->proximo;
+        pos--;
+    }
+
+    if (pos == 0)
+        return item;
 
     return NULL;
 }
