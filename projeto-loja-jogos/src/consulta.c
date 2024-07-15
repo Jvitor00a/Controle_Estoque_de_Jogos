@@ -16,7 +16,7 @@ Produto buscarProdutoPorID(int id) {
     }
 
     
-    while (fscanf(file, "%d %s %s %lf %d", &produto.id, produto.nome, produto.categoria, &produto.preco, &produto.quantidade) != EOF) {
+    while (fscanf(file, "%d %s %s %f %d", &produto.id, produto.nome, produto.categoria, &produto.preco, &produto.quantidade) != EOF) {
         if (produto.id == id) {
             fclose(file); 
             return produto;
@@ -39,7 +39,7 @@ Produto buscarProdutoPorNome(char* nome) {
     }
 
 
-    while (fscanf(file, "%d %s %s %lf %d", &produto.id, produto.nome, produto.categoria, &produto.preco, &produto.quantidade) != EOF) {
+    while (fscanf(file, "%d %s %s %f %d", &produto.id, produto.nome, produto.categoria, &produto.preco, &produto.quantidade) != EOF) {
         if (strcmp(produto.nome, nome) == 0) {
             fclose(file);
             return produto;
@@ -58,7 +58,7 @@ void exibirProduto(Produto produto) {
         printf("ID: %d\n", produto.id);
         printf("Nome: %s\n", produto.nome);
         printf("Categoria: %s\n", produto.categoria);
-        printf("Preço: %.2f\n", produto.preco);
+        printf("Valor: %.2f\n", produto.preco);
         printf("Quantidade: %d\n", produto.quantidade);
     }
 }
