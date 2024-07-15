@@ -9,5 +9,7 @@ Produto buscarProdutoPorNome(char* nome);
 
 void exibirProduto(Produto produto);
 
+void renderizarRotaDePesquisa();
+
 #endif
 

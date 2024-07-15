@@ -4,6 +4,7 @@
 #include "raygui.h"
 #include "registro.h"
 #include "rota.h"
+#include "consulta.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -32,7 +33,7 @@ Rota lista_rotas[] = {
     {.nome = "Vender"},
     {.nome = "Produtos"},
     {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarRota = InicializarRotaEstoque},
-    {.nome = "Pesquisar"},
+    {.nome = "Pesquisar", .fnRenderizarRota = renderizarRotaDePesquisa}, 
     {.nome = "Relatorios"}};
 
 const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);

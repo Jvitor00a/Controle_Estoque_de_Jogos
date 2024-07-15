@@ -223,7 +223,7 @@ void RenderizarRotaEstoque()
         Button007();
     if (GuiButton((Rectangle){504, 336, 80, 24}, "Salvar"))
         Button008();
-    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &SpinnerQtdValor, 0, __INT_MAX__, SpinnerQtdEditando))
+    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &SpinnerQtdValor, 0, 1000000, SpinnerQtdEditando))
         SpinnerQtdEditando = !SpinnerQtdEditando;
 }
 

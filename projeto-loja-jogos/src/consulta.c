@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include "raygui.h"
+#include "raylib.h"
 #include "consulta.h"
 
 
@@ -59,4 +61,26 @@ void exibirProduto(Produto produto) {
         printf("Preço: %.2f\n", produto.preco);
         printf("Quantidade: %d\n", produto.quantidade);
     }
+}
+
+bool editandoCaixaPesquisa;
+char *textoCaixaPesquisa;
+
+void renderizarRotaDePesquisa(){
+    // raygui: controls drawing
+            //----------------------------------------------------------------------------------
+            if (GuiTextBox((Rectangle){ 0, 40, 648, 24 }, &textoCaixaPesquisa, 128, editandoCaixaPesquisa)) editandoCaixaPesquisa = !editandoCaixaPesquisa;
+            GuiGroupBox((Rectangle){ 0, 24, 648, 336 }, "Detalhes");
+            GuiLabel((Rectangle){ 48, 64, 120, 24 }, "Id");
+            GuiLabel((Rectangle){ 152, 64, 80, 24 }, "Nome");
+            GuiLabel((Rectangle){ 288, 64, 80, 24 }, "Categoria");
+            GuiLabel((Rectangle){ 424, 64, 64, 24 }, "        Valor");
+            GuiLabel((Rectangle){ 544, 64, 80, 24 }, "Quantidade");
+            GuiLabel((Rectangle){ 24, 96, 72, 40 }, "001");
+            GuiLabel((Rectangle){ 128, 104, 80, 24 }, "Krai");
+            GuiLabel((Rectangle){ 280, 104, 120, 24 }, "utensilios");
+            GuiLabel((Rectangle){ 424, 104, 80, 24 }, "399,90");
+            GuiLabel((Rectangle){ 552, 104, 88, 24 }, "100");
+            //----------------------------------------------------------------------------------
+
 }
