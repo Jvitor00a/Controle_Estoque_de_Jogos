@@ -1,5 +1,5 @@
-#ifndef RELATORIO_ESTOQUE_H
-#define RELATORIO_ESTOQUE_H
+#ifndef RELATORIO_H
+#define RELATORIO_H
 
 #include <stdio.h>
 #include <stdlib.h>

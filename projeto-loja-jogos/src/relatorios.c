@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "relatorio.h"
 
 #define ARQUIVO_REGISTRO "registro_estoque.txt"
 #define PREFIXO_ENTRADA 'E'
