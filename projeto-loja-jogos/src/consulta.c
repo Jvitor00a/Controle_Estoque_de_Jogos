@@ -98,7 +98,7 @@ const char *EtiquetaQtd = "Quantidade";
 // Variáveis da interface
 char TextoLabelPesquisando[128] = "Digite o termo de busca na caixa de texto acima";
 bool EditandoCaixaTextoPesquisa = false;
-char TextoCaixaPesquisa[128] = "Digite para pesquisar";
+char TextoCaixaPesquisa[128] = "";
 bool ProdutoEncontradoComSucesso = false;
 // Variáveis do produto pesquisado
 char IdProduto[128] = "001";
