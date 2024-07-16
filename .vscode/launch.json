@@ -8,7 +8,7 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/projeto-loja-jogos/build/LojaJogos",
+      "program": "${workspaceFolder}/build/LojaJogos",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

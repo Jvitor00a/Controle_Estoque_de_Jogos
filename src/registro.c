@@ -75,8 +75,9 @@ Lista *ContarEstoque()
 
         char tipo_registro;
         int id, qtd;
+        double valor_unitario;
 
-        sscanf(buffer_leitura, FORMATO_LINHA_REGISTRO, &tipo_registro, &id, &qtd);
+        sscanf(buffer_leitura, FORMATO_LINHA_REGISTRO, &tipo_registro, &id, &qtd, &valor_unitario);
 
         if (tipo_registro == IDENTIFICADOR_ENTRADA)
             qtd = qtd;

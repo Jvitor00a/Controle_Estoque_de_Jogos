@@ -5,7 +5,7 @@
 #include "lista.h"
 #include "rota.h"
 
-#define ARQUIVO_REGISTRO "registro_estoque.txt"
+#define ARQUIVO_REGISTRO "data/registro_estoque.txt"
 #define IDENTIFICADOR_ENTRADA 'E'
 #define IDENTIFICADOR_SAIDA 'S'
 #define FORMATO_LINHA_REGISTRO "%c %d %d %lf\n"
