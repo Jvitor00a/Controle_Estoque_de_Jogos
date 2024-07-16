@@ -5,6 +5,11 @@
 #include "lista.h"
 #include "rota.h"
 
+#define ARQUIVO_REGISTRO "registro_estoque.txt"
+#define IDENTIFICADOR_ENTRADA 'E'
+#define IDENTIFICADOR_SAIDA 'S'
+#define FORMATO_LINHA_REGISTRO "%c %d %d %lf\n"
+
 typedef enum TipoResultado
 {
     RESULTADO_SUCESSO,

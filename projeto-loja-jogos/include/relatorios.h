@@ -5,27 +5,32 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define ARQUIVO_REGISTRO "registro_estoque.txt"
-#define PREFIXO_ENTRADA 'E'
-#define PREFIXO_SAIDA 'S'
-#define FORMATO_LINHA_REGISTRO "%c %d %d\n"
-
-// Estrutura para armazenar cada transação
-typedef struct {
+typedef struct
+{
     char tipo;
     int idProduto;
     int quantidade;
+    double precoUnitario;
 } Transacao;
 
-// Estrutura para armazenar informações agregadas por categoria
-typedef struct {
+typedef struct
+{
+    int totalEntradas;
+    int totalSaidas;
+    double custoTotal;
+    double valorTotalVendas;
+} RelatorioProduto;
+
+typedef struct
+{
     int idCategoria;
     int totalEntradas;
     int totalSaidas;
+    double custoTotal;
+    double valorTotalVendas;
 } RelatorioCategoria;
 
-// Protótipos das funções
-void GerarRelatorioPorProduto(int idProduto);
-void GerarRelatorioPorCategoria();
+RelatorioProduto *GerarRelatorioPorProduto(int idProduto);
+RelatorioCategoria *GerarRelatorioPorCategoria(int *numCategorias);
 
 #endif // RELATORIO_ESTOQUE_H
