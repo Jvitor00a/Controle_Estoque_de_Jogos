@@ -5,11 +5,6 @@
 #include "raygui.h"
 #include "lista_contagem.h"
 
-#define ARQUIVO_REGISTRO "registro_estoque.txt"
-#define PREFIXO_ENTRADA 'E'
-#define PREFIXO_SAIDA 'S'
-#define FORMATO_LINHA_REGISTRO "%c %d %d\n"
-
 ResultadoTransacao RegistrarEntradaProduto(int idProduto, int quantidade)
 {
     FILE *fd = fopen(ARQUIVO_REGISTRO, "a");
@@ -21,7 +16,7 @@ ResultadoTransacao RegistrarEntradaProduto(int idProduto, int quantidade)
 
     printf("Arquivo aberto com sucesso\n");
 
-    fprintf(fd, FORMATO_LINHA_REGISTRO, PREFIXO_ENTRADA, idProduto, quantidade);
+    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_ENTRADA, idProduto, quantidade);
 
     fclose(fd);
 
@@ -37,7 +32,7 @@ ResultadoTransacao RegistrarSaidaProduto(int idProduto, int quantidade)
         printf("Erro ao abrir o arquivo\n");
     }
 
-    fprintf(fd, FORMATO_LINHA_REGISTRO, PREFIXO_SAIDA, idProduto, quantidade);
+    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_SAIDA, idProduto, quantidade);
 
     fclose(fd);
 
@@ -83,7 +78,7 @@ Lista *ContarEstoque()
 
         sscanf(buffer_leitura, FORMATO_LINHA_REGISTRO, &tipo_registro, &id, &qtd);
 
-        if (tipo_registro == PREFIXO_ENTRADA)
+        if (tipo_registro == IDENTIFICADOR_ENTRADA)
             qtd = qtd;
         else
             qtd = -qtd;
