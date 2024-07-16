@@ -1,14 +1,14 @@
 #include "interface.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
+#include "consulta.h"
 #include "raygui.h"
 #include "registro.h"
 #include "rota.h"
-#include "consulta.h"
 
-#include <string.h>
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define NOME_PROGRAMA "Estoque de jogos"
 
@@ -19,11 +19,11 @@ typedef enum InterfaceRotas
 
 typedef struct ContextoRotaEstoque
 {
-    int ListaJogosScrollIndex;
+    int lista_jogos_indice_rolagem;
     int ListaJogosSelecionado;
-    bool SpinnerQtdEditando;
-    int SpinnerQtdValor;
-    char ListaJogosTexto[1000];
+    bool editando_quantidade;
+    int quantidade_jogo_selecionado;
+    char texto_lista_jogos[1000];
 } ContextoRotaEstoque;
 
 static void PopularListaJogos(char *);
@@ -33,7 +33,7 @@ Rota lista_rotas[] = {
     {.nome = "Vender"},
     {.nome = "Produtos"},
     {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarRota = InicializarRotaEstoque},
-    {.nome = "Pesquisar", .fnRenderizarRota = renderizarRotaDePesquisa}, 
+    {.nome = "Pesquisar", .fnRenderizarRota = RenderizarRotaDePesquisa},
     {.nome = "Relatorios"}};
 
 const int num_rotas = sizeof(lista_rotas) / sizeof(Rota);
@@ -51,7 +51,10 @@ void RenderizarRotaSelecionada(int selecionada)
 {
     if (selecionada < 0 || selecionada >= num_rotas)
     {
-        TraceLog(LOG_ERROR, "Tentativa de renderizar rota #%d porem a aplicacao so possui %d rotas registradas", selecionada, num_rotas);
+        TraceLog(LOG_ERROR,
+                 "Tentativa de renderizar rota #%d porem a aplicacao so possui "
+                 "%d rotas registradas",
+                 selecionada, num_rotas);
         return;
     }
 
@@ -106,7 +109,8 @@ void RodarInterface()
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
 
-        GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32}, ListaRotasTexto, &SelecaoRota);
+        GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32},
+                       ListaRotasTexto, &SelecaoRota);
         // GuiLabel((Rectangle){8, 8, 160, 32}, "Ola, {{Nome}}}");
         RenderizarRotaSelecionada(SelecaoRota);
 
@@ -119,7 +123,7 @@ void RodarInterface()
     // De-Initialization
     //--------------------------------------------------------------------------------------
     CloseWindow(); // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+                   //--------------------------------------------------------------------------------------
 }
 
 //------------------------------------------------------------------------------------
@@ -147,7 +151,7 @@ void PopularListaJogos(char *out)
             abort();
         }
 
-        sprintf(&string_jogo_id[5], "%.5d", cont->idProduto % 100000);
+        sprintf(&string_jogo_id[5], "%.5d", cont->id_produto % 100000);
 
         int chars_escritos;
 

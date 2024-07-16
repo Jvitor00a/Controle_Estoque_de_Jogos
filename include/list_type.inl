@@ -50,43 +50,43 @@ that define INCLUDE_LIST_TYPE_INL
 */
 
 /* Define the names of the list-type to generate,
-    e.g. list_int, list_float
+    e.g. ListInt, ListFloat
 */
-#define LIST_TYPE JOIN2(list, LIST_ELEMENT_TYPE)
+#define LIST_TYPE CAT2(Lista, LIST_ELEMENT_TYPE)
 
 /* Define the function-names of the LIST_TYPE API.
     Each of the API macros LIST_XXXX generates a function name in
-    which LIST becomes the value of LIST_TYPE and XXXX becomes lowercase,
-    e.g list_int_new
+    which LIST becomes the value of LIST_TYPE and XXXX becomes TitleCase,
+    e.g ListIntNew
 */
-#define LIST_NEW JOIN2(LIST_TYPE, new)
-#define LIST_NODE JOIN2(LIST_TYPE, node)
-#define LIST_DISPOSE JOIN2(LIST_TYPE, dispose)
-#define LIST_COPY_INIT JOIN2(LIST_TYPE, copy_init)
-#define LIST_COPY JOIN2(LIST_TYPE, copy)
-#define LIST_BEGIN JOIN2(LIST_TYPE, begin)
-#define LIST_END JOIN2(LIST_TYPE, end)
-#define LIST_SIZE JOIN2(LIST_TYPE, size)
-#define LIST_INSERT_BEFORE JOIN3(LIST_TYPE, insert, before)
-#define LIST_DELETE_BEFORE JOIN3(LIST_TYPE, delete, before)
-#define LIST_PUSH_BACK JOIN3(LIST_TYPE, push, back)
-#define LIST_PUSH_FRONT JOIN3(LIST_TYPE, push, front)
-#define LIST_POP_BACK JOIN3(LIST_TYPE, pop, back)
-#define LIST_POP_FRONT JOIN3(LIST_TYPE, pop, front)
-#define LIST_GET_AT_POSITION JOIN2(JOIN3(LIST_TYPE, get, at), pos)
-#define LIST_NODE_GET JOIN2(LIST_NODE, get)
-#define LIST_NODE_NEXT JOIN2(LIST_NODE, next)
-#define LIST_NODE_PREV JOIN2(LIST_NODE, prev)
+#define LIST_NEW CAT2(LIST_TYPE, Nova)
+#define LIST_NODE CAT2(LIST_TYPE, Nó)
+#define LIST_DISPOSE CAT2(LIST_TYPE, Descartar)
+#define LIST_COPY_INIT CAT2(LIST_TYPE, CopiaInicial)
+#define LIST_COPY CAT2(LIST_TYPE, Copia)
+#define LIST_BEGIN CAT2(LIST_TYPE, Inicio)
+#define LIST_END CAT2(LIST_TYPE, Fim)
+#define LIST_SIZE CAT2(LIST_TYPE, Tamanho)
+#define LIST_INSERT_BEFORE CAT3(LIST_TYPE, Inserir, Antes)
+#define LIST_DELETE_BEFORE CAT3(LIST_TYPE, Deletar, Antes)
+#define LIST_PUSH_BACK CAT3(LIST_TYPE, Empurrar, Tras)
+#define LIST_PUSH_FRONT CAT3(LIST_TYPE, Empurrar, Frente)
+#define LIST_POP_BACK CAT3(LIST_TYPE, Retirar, Tras)
+#define LIST_POP_FRONT CAT3(LIST_TYPE, Retirar, Frente)
+#define LIST_GET_AT_POSITION CAT2(CAT3(LIST_TYPE, Obter, Em), Posicao)
+#define LIST_NODE_GET CAT2(LIST_NODE, Obter)
+#define LIST_NODE_NEXT CAT2(LIST_NODE, Proximo)
+#define LIST_NODE_PREV CAT2(LIST_NODE, Anterior)
 
 /* Define the name of the structure used to implement a LIST_TYPE.
     This structure is not exposed to user code.
 */
-#define LIST_STRUCT JOIN2(LIST_TYPE, struct)
+#define LIST_STRUCT CAT2(LIST_TYPE, Struct)
 
 /* Define the name of the structure used to implement a node of a LIST_TYPE.
     This structure is not exposed to user code.
 */
-#define LIST_NODE_STRUCT JOIN2(LIST_NODE, struct)
+#define LIST_NODE_STRUCT CAT2(LIST_NODE, Struct)
 
 /* The LIST_TYPE API... */
 
@@ -184,12 +184,13 @@ extern void LIST_POP_BACK(LIST_TYPE list);
  */
 extern void LIST_POP_FRONT(LIST_TYPE list);
 
-/* Return the LIST_NODE at the given position in the list, counting from the beginning.
- * Parameters:
+/* Return the LIST_NODE at the given position in the list, counting from the
+ * beginning. Parameters:
  * - list: The list from which the node should be retrieved.
  * - position: The position (0-based index) of the node to retrieve.
  * Returns:
- * - The LIST_NODE at the given position, or NULL if the position is out of bounds.
+ * - The LIST_NODE at the given position, or NULL if the position is out of
+ * bounds.
  */
 extern LIST_NODE LIST_GET_AT_POSITION(LIST_TYPE list, size_t position);
 

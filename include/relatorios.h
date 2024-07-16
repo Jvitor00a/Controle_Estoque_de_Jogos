@@ -1,36 +1,36 @@
 #ifndef RELATORIO_H
 #define RELATORIO_H
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 typedef struct
 {
     char tipo;
-    int idProduto;
+    int id_produto;
     int quantidade;
-    double precoUnitario;
+    double preço_unitario;
 } Transacao;
 
 typedef struct
 {
-    int totalEntradas;
-    int totalSaidas;
-    double custoTotal;
-    double valorTotalVendas;
+    int total_entradas;
+    int total_saidas;
+    double custo_total;
+    double valor_total_vendas;
 } RelatorioProduto;
 
 typedef struct
 {
-    int idCategoria;
-    int totalEntradas;
-    int totalSaidas;
-    double custoTotal;
-    double valorTotalVendas;
+    int id_categoria;
+    int total_entradas;
+    int total_saidas;
+    double custo_total;
+    double valor_total_vendas;
 } RelatorioCategoria;
 
-RelatorioProduto *GerarRelatorioPorProduto(int idProduto);
+RelatorioProduto *GerarRelatorioPorProduto(int id_produto);
 RelatorioCategoria *GerarRelatorioPorCategoria(int *numCategorias);
 
 #endif // RELATORIO_ESTOQUE_H

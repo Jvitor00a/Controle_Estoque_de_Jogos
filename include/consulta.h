@@ -3,13 +3,12 @@
 
 #include "produto.h"
 
-Produto buscarProdutoPorId(int id);
+Produto BuscarProdutoPorId(int id);
 
-Produto buscarProdutoPorNome(char* nome);
+Produto BuscarProdutoPorNome(char *nome);
 
-void exibirProduto(Produto produto);
+void ExibirProduto(Produto produto);
 
-void renderizarRotaDePesquisa();
+void RenderizarRotaDePesquisa();
 
 #endif
-

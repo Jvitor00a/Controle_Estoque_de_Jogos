@@ -1,50 +1,54 @@
+#include "registro.h"
+#include "lista_contagem.h"
+#include "raygui.h"
+#include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "registro.h"
-#include "raylib.h"
-#include "raygui.h"
-#include "lista_contagem.h"
 
-ResultadoTransacao RegistrarEntradaProduto(int idProduto, int quantidade)
+// TODO: Adicionar valor unitario às funções de registrar entradas e saídas
+// TOOD: Adicionar funcionalidade do usuario especificar valor unitario em cada
+// entrada/saida
+
+ResultadoTransacao RegistrarEntradaProduto(int id_produto, int quantidade, double valor_unitario)
 {
     FILE *fd = fopen(ARQUIVO_REGISTRO, "a");
 
     if (fd == NULL)
     {
-        printf("Erro ao abrir o arquivo\n");
+        return (ResultadoTransacao){.tipo = RESULTADO_FALHA, .msg_erro = "Erro ao abrir o arquivo de estoque"};
     }
 
     printf("Arquivo aberto com sucesso\n");
 
-    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_ENTRADA, idProduto, quantidade);
+    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_ENTRADA, id_produto, quantidade);
 
     fclose(fd);
 
     return (ResultadoTransacao){.tipo = RESULTADO_SUCESSO};
 }
 
-ResultadoTransacao RegistrarSaidaProduto(int idProduto, int quantidade)
+ResultadoTransacao RegistrarSaidaProduto(int id_produto, int quantidade, double valor_unitario)
 {
     FILE *fd = fopen(ARQUIVO_REGISTRO, "a");
 
     if (fd == NULL)
     {
-        printf("Erro ao abrir o arquivo\n");
+        return (ResultadoTransacao){.tipo = RESULTADO_FALHA, .msg_erro = "Erro ao abrir o arquivo de estoque"};
     }
 
-    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_SAIDA, idProduto, quantidade);
+    fprintf(fd, FORMATO_LINHA_REGISTRO, IDENTIFICADOR_SAIDA, id_produto, quantidade);
 
     fclose(fd);
 
     return (ResultadoTransacao){.tipo = RESULTADO_SUCESSO};
 }
 
-int idItemProcurado = 0;
+int id_item_procurado = 0;
 bool FiltrarPorId(ItemLista *item)
 {
     Contagem *cont = (Contagem *)item->dados;
 
-    if (cont->idProduto == idItemProcurado)
+    if (cont->id_produto == id_item_procurado)
         return true;
 
     return false;
@@ -62,7 +66,7 @@ Lista *ContarEstoque()
 
     Lista *resultados = CriarLista();
 
-    list_Contagem result = list_Contagem_new(NULL, NULL);
+    ListaContagem resultado = ListaContagemNova(NULL, NULL);
 
     char buffer_leitura[100];
 
@@ -84,46 +88,52 @@ Lista *ContarEstoque()
         else
             qtd = -qtd;
 
-        idItemProcurado = id;
+        id_item_procurado = id;
         ItemLista *item = ListaEncontrar(resultados, FiltrarPorId);
 
-        list_Contagem_node node = list_Contagem_begin(result);
+        ListaContagemNó nó = ListaContagemInicio(resultado);
         Contagem *c;
 
-        while ((c = list_Contagem_node_get(node)) != NULL)
+        while ((c = ListaContagemNóObter(nó)) != NULL)
         {
-            if (c->idProduto == id)
+            if (c->id_produto == id)
                 break;
-            node = list_Contagem_node_next(node);
+            nó = ListaContagemNóProximo(nó);
         }
 
         if (item == NULL)
         {
             if (qtd < 0)
             {
-                printf("Tentativa de realizar saída de produto sem estoque, ignorando\n");
+                printf("Tentativa de realizar saída de produto sem estoque, "
+                       "ignorando\n");
                 continue;
             }
 
             Contagem *cont = (Contagem *)malloc(sizeof(Contagem));
-            *cont = (Contagem){.idProduto = id, .quantidade = qtd};
+            *cont = (Contagem){.id_produto = id, .quantidade = qtd};
             ListaAcrescentar(resultados, cont);
-            list_Contagem_push_back(result, cont);
+            ListaContagemEmpurrarTras(resultado, cont);
         }
         else
         {
             Contagem *jogo = ((Contagem *)item->dados);
             int emEstoque = jogo->quantidade;
 
-            // A checagem a seguir é necessária pois "qtd" pode ser negativo (em caso de saída de produto)
+            // A checagem a seguir é necessária pois "qtd" pode ser negativo (em
+            // caso de saída de produto)
             if ((qtd + emEstoque) >= 0)
             {
                 jogo->quantidade += qtd;
-                printf("Adicionadas %d unidades do produto #%d, %dun(s). ao total\n", qtd, jogo->idProduto, jogo->quantidade);
+                printf("Adicionadas %d unidades do produto #%d, %dun(s). ao "
+                       "total\n",
+                       qtd, jogo->id_produto, jogo->quantidade);
             }
             else
             {
-                printf("Nao e permitido retirar %d produtos de estoque com apenas %d disponiveis\n", qtd, emEstoque);
+                printf("Nao e permitido retirar %d produtos de estoque com "
+                       "apenas %d disponiveis\n",
+                       qtd, emEstoque);
                 continue;
             }
         }
@@ -132,10 +142,11 @@ Lista *ContarEstoque()
     return resultados;
 }
 
-int ListaJogosScrollIndex = 0, PosicaoJogoSelecionado = 0, UltimaPosicaoSelecionada = -1, SpinnerQtdValor = 0;
-bool SpinnerQtdEditando = false;
-char *ListaJogosTexto = NULL;
-Lista *resultadoUltimaContagem;
+int lista_jogos_indice_rolagem = 0, indice_jogo_selecionado = 0, ultimo_indice_selecionado = -1,
+    quantidade_jogo_selecionado = 0;
+bool editando_quantidade = false;
+char *texto_lista_jogos = NULL;
+Lista *resultado_contagem;
 
 char string_jogo_id[] = "JOGO#XXXXX";
 const int tamanho_string_jogo_id = sizeof(string_jogo_id) / sizeof(char);
@@ -144,7 +155,7 @@ const int max_jogos_lista = 100000;
 void PopularListaJogos(char **out)
 {
     size_t tamanho_total = 0;
-    for (ItemLista *i = resultadoUltimaContagem->primeiro; i != NULL; i = i->proximo)
+    for (ItemLista *i = resultado_contagem->primeiro; i != NULL; i = i->proximo)
     {
         Contagem *cont = (Contagem *)(i->dados);
 
@@ -154,7 +165,7 @@ void PopularListaJogos(char **out)
             abort();
         }
 
-        sprintf(&string_jogo_id[5], "%.5d", cont->idProduto % max_jogos_lista);
+        sprintf(&string_jogo_id[5], "%.5d", cont->id_produto % max_jogos_lista);
 
         int tamanho_antigo = tamanho_total;
         tamanho_total += tamanho_string_jogo_id;
@@ -184,56 +195,57 @@ void PopularListaJogos(char **out)
 
 void InicializarRotaEstoque()
 {
-    resultadoUltimaContagem = ContarEstoque();
-    ListaJogosTexto = NULL; // Initialize to NULL
-    PopularListaJogos(&ListaJogosTexto);
+    resultado_contagem = ContarEstoque();
+    texto_lista_jogos = NULL; // Initialize to NULL
+    PopularListaJogos(&texto_lista_jogos);
 }
 static void BotaoCancelarClicado(); // Logica do botao de cancelar
 static void BotaoSalvarClicado();   // Logica do botao de salvar alterações no estoque
 
 void RenderizarRotaEstoque()
 {
-    if (PosicaoJogoSelecionado < 0)
-        PosicaoJogoSelecionado = 0;
+    if (indice_jogo_selecionado < 0)
+        indice_jogo_selecionado = 0;
 
-    if (PosicaoJogoSelecionado != UltimaPosicaoSelecionada) // Verifica se a posição foi alterada
+    if (indice_jogo_selecionado != ultimo_indice_selecionado) // Verifica se a posição foi alterada
     {
-        UltimaPosicaoSelecionada = PosicaoJogoSelecionado;
-        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, PosicaoJogoSelecionado);
-        if (itemSelecionado != NULL)
+        ultimo_indice_selecionado = indice_jogo_selecionado;
+        ItemLista *item_selecionado = ListaPosicao(resultado_contagem, indice_jogo_selecionado);
+        if (item_selecionado != NULL)
         {
-            Contagem *c = (Contagem *)itemSelecionado->dados;
-            SpinnerQtdValor = c->quantidade;
-            printf("Produto da posicao %d encontrado com sucesso\n", PosicaoJogoSelecionado);
+            Contagem *c = (Contagem *)item_selecionado->dados;
+            quantidade_jogo_selecionado = c->quantidade;
+            printf("Produto da posicao %d encontrado com sucesso\n", indice_jogo_selecionado);
         }
         else
         {
-            printf("Nao foi possivel encontrar o produto na posicao %d\n", PosicaoJogoSelecionado);
+            printf("Nao foi possivel encontrar o produto na posicao %d\n", indice_jogo_selecionado);
         }
     }
 
     GuiLabel((Rectangle){8, 36, 120, 24}, "Jogos");
-    GuiListView((Rectangle){8, 56, 384, 312}, ListaJogosTexto, &ListaJogosScrollIndex, &PosicaoJogoSelecionado);
+    GuiListView((Rectangle){8, 56, 384, 312}, texto_lista_jogos, &lista_jogos_indice_rolagem, &indice_jogo_selecionado);
     GuiGroupBox((Rectangle){400, 48, 192, 320}, "Detalhes");
     if (GuiButton((Rectangle){408, 336, 88, 24}, "Cancelar"))
         BotaoCancelarClicado();
     if (GuiButton((Rectangle){504, 336, 80, 24}, "Salvar"))
         BotaoSalvarClicado();
-    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &SpinnerQtdValor, 0, 1000000, SpinnerQtdEditando))
-        SpinnerQtdEditando = !SpinnerQtdEditando;
+    if (GuiSpinner((Rectangle){472, 64, 112, 24}, "Quantidade ", &quantidade_jogo_selecionado, 0, 1000000,
+                   editando_quantidade))
+        editando_quantidade = !editando_quantidade;
 }
 
 static void BotaoCancelarClicado()
 {
     // Reset spinner value to the original value
-    if (UltimaPosicaoSelecionada >= 0)
+    if (ultimo_indice_selecionado >= 0)
     {
-        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, UltimaPosicaoSelecionada);
-        if (itemSelecionado != NULL)
+        ItemLista *item_selecionado = ListaPosicao(resultado_contagem, ultimo_indice_selecionado);
+        if (item_selecionado != NULL)
         {
-            Contagem *c = (Contagem *)itemSelecionado->dados;
-            SpinnerQtdValor = c->quantidade;
-            printf("Alterações canceladas para o produto #%d\n", c->idProduto);
+            Contagem *c = (Contagem *)item_selecionado->dados;
+            quantidade_jogo_selecionado = c->quantidade;
+            printf("Alterações canceladas para o produto #%d\n", c->id_produto);
         }
     }
 }
@@ -241,27 +253,27 @@ static void BotaoCancelarClicado()
 static void BotaoSalvarClicado()
 {
     // Save the changes to the inventory
-    if (UltimaPosicaoSelecionada >= 0)
+    if (ultimo_indice_selecionado >= 0)
     {
-        ItemLista *itemSelecionado = ListaPosicao(resultadoUltimaContagem, UltimaPosicaoSelecionada);
-        if (itemSelecionado != NULL)
+        ItemLista *item_selecionado = ListaPosicao(resultado_contagem, ultimo_indice_selecionado);
+        if (item_selecionado != NULL)
         {
-            Contagem *c = (Contagem *)itemSelecionado->dados;
-            int quantidadeAnterior = c->quantidade;
+            Contagem *c = (Contagem *)item_selecionado->dados;
+            int quantidade_anterior = c->quantidade;
 
-            if (SpinnerQtdValor != quantidadeAnterior)
+            if (quantidade_jogo_selecionado != quantidade_anterior)
             {
-                int diferenca = SpinnerQtdValor - quantidadeAnterior;
+                int diferenca = quantidade_jogo_selecionado - quantidade_anterior;
                 if (diferenca > 0)
                 {
-                    RegistrarEntradaProduto(c->idProduto, diferenca);
+                    // RegistrarEntradaProduto(c->id_produto, diferenca);
                 }
                 else
                 {
-                    RegistrarSaidaProduto(c->idProduto, -diferenca);
+                    // RegistrarSaidaProduto(c->id_produto, -diferenca);
                 }
-                c->quantidade = SpinnerQtdValor;
-                printf("Estoque atualizado para o produto #%d: %d unidades\n", c->idProduto, c->quantidade);
+                c->quantidade = quantidade_jogo_selecionado;
+                printf("Estoque atualizado para o produto #%d: %d unidades\n", c->id_produto, c->quantidade);
             }
         }
     }

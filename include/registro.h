@@ -1,9 +1,9 @@
 #ifndef REGISTRO_H
 #define REGISTRO_H
 
-#include <string.h>
 #include "lista.h"
 #include "rota.h"
+#include <string.h>
 
 #define ARQUIVO_REGISTRO "data/registro_estoque.txt"
 #define IDENTIFICADOR_ENTRADA 'E'
@@ -22,12 +22,12 @@ typedef struct ResultadoTransacao
     char *msg_erro;
 } ResultadoTransacao;
 
-ResultadoTransacao RegistrarEntradaProduto(int idProduto, int quantidade);
-ResultadoTransacao RegistrarSaidaProduto(int idProduto, int quantidade);
+ResultadoTransacao RegistrarEntradaProduto(int id_produto, int quantidade, double valor_unitario);
+ResultadoTransacao RegistrarSaidaProduto(int id_produto, int quantidade, double valor_unitario);
 
 typedef struct Contagem
 {
-    int idProduto, quantidade;
+    int id_produto, quantidade;
 } Contagem;
 
 /**
