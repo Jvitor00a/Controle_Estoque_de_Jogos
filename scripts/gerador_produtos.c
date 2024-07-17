@@ -8,12 +8,11 @@ typedef struct
     int id;
     char nome[50];
     char categoria[50];
-    double preco;
-    int quantidade;
+    double valor_unitario;
 } Produto;
 
 // Função para gerar um nome de produto aleatório
-void gerarNomeProduto(char *nome)
+void GerarNomeProduto(char *nome)
 {
     const char *nomes[] = {"ProdutoA", "ProdutoB", "ProdutoC", "ProdutoD", "ProdutoE"};
     int indice = rand() % 5;
@@ -21,7 +20,7 @@ void gerarNomeProduto(char *nome)
 }
 
 // Função para gerar uma categoria de produto aleatória
-void gerarCategoriaProduto(char *categoria)
+void GerarCategoriaProduto(char *categoria)
 {
     const char *categorias[] = {"Categoria1", "Categoria2", "Categoria3", "Categoria4", "Categoria5"};
     int indice = rand() % 5;
@@ -40,17 +39,15 @@ int main()
 
     srand(time(NULL)); // Inicializa o gerador de números aleatórios
 
-    for (int i = 1; i <= 1000; i++)
+    for (int i = 1; i <= 20; i++)
     {
         Produto produto;
         produto.id = i;
-        gerarNomeProduto(produto.nome);
-        gerarCategoriaProduto(produto.categoria);
-        produto.preco = (rand() % 10000) / 100.0; // Gera um preço aleatório entre 0.00 e 99.99
-        produto.quantidade = rand() % 100;        // Gera uma quantidade aleatória entre 0 e 99
+        GerarNomeProduto(produto.nome);
+        GerarCategoriaProduto(produto.categoria);
+        produto.valor_unitario = (rand() % 10000) / 100.0; // Gera um preço aleatório entre 0.00 e 99.99
 
-        fprintf(file, "%d %s %s %.2f %d\n", produto.id, produto.nome, produto.categoria, produto.preco,
-                produto.quantidade);
+        fprintf(file, "%d %s %s %.2lf\n", produto.id, produto.nome, produto.categoria, produto.valor_unitario);
     }
 
     fclose(file);

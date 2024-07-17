@@ -1,20 +1,15 @@
 #ifndef REGISTRO_H
 #define REGISTRO_H
 
-#include "lista.h"
+#include "cadastro.h"
+#include "lista_contagem.h"
 #include "rota.h"
 #include <string.h>
 
-#define ARQUIVO_REGISTRO "data/registro_estoque.txt"
+#define ARQUIVO_REGISTRO "data/estoque.txt"
 #define IDENTIFICADOR_ENTRADA 'E'
 #define IDENTIFICADOR_SAIDA 'S'
 #define FORMATO_LINHA_REGISTRO "%c %d %d %lf\n"
-
-typedef enum TipoResultado
-{
-    RESULTADO_SUCESSO,
-    RESULTADO_FALHA
-} TipoResultado;
 
 typedef struct ResultadoTransacao
 {
@@ -25,15 +20,9 @@ typedef struct ResultadoTransacao
 ResultadoTransacao RegistrarEntradaProduto(int id_produto, int quantidade, double valor_unitario);
 ResultadoTransacao RegistrarSaidaProduto(int id_produto, int quantidade, double valor_unitario);
 
-typedef struct Contagem
-{
-    int id_produto, quantidade;
-} Contagem;
+ListaContagem ContarEstoque();
 
-/**
- * Retorna uma Lista onde cada Item é do tipo Contagem
- */
-Lista *ContarEstoque();
+int ContarProduto(int id);
 
 void RenderizarRotaEstoque();
 void InicializarRotaEstoque();

@@ -1,10 +1,13 @@
 #ifndef LISTA_CONTAGEM_H
 #define LISTA_CONTAGEM_H
 
-#include "registro.h"
+typedef struct Contagem
+{
+    int id_produto, quantidade;
+} Contagem;
 
 #define LIST_ELEMENT_TYPE Contagem
 #define INCLUDE_LIST_TYPE_INL
-#include "list_type.inl"
+#include "lista_generica.inl"
 
 #endif

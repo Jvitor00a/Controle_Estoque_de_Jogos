@@ -1,13 +1,15 @@
 #ifndef PRODUTO_H
 #define PRODUTO_H
 
-typedef struct
+#define TAMANHO_MAXIMO_NOME_PRODUTO 100
+#define TAMANHO_MAXIMO_CATEGORIA_PRODUTO 30
+
+typedef struct Produto
 {
     int id;
-    char nome[100];
-    char categoria[30];
-    float preco;
-    int quantidade;
+    char nome[TAMANHO_MAXIMO_NOME_PRODUTO];
+    char categoria[TAMANHO_MAXIMO_CATEGORIA_PRODUTO];
+    double valor_unitario;
 } Produto;
 
 #endif

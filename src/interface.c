@@ -17,16 +17,6 @@ typedef enum InterfaceRotas
     INTERFACE_ROTA_ESTOQUE,
 } InterfaceRotas;
 
-typedef struct ContextoRotaEstoque
-{
-    int lista_jogos_indice_rolagem;
-    int ListaJogosSelecionado;
-    bool editando_quantidade;
-    int quantidade_jogo_selecionado;
-    char texto_lista_jogos[1000];
-} ContextoRotaEstoque;
-
-static void PopularListaJogos(char *);
 static void PopularListaRotas(char *);
 
 Rota lista_rotas[] = {
@@ -60,27 +50,18 @@ void RenderizarRotaSelecionada(int selecionada)
 
     Rota rota_selecionada = lista_rotas[selecionada];
 
-    // printf("Renderizando rota #%d: %s\n", selecionada, rota_selecionada.nome);
-
     if (rota_selecionada.fnRenderizarRota != NULL)
         rota_selecionada.fnRenderizarRota();
 }
 
 void RodarInterface()
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
 {
-    // Initialization
-    //---------------------------------------------------------------------------------------
     int screenWidth = 600;
     int screenHeight = 380;
 
     InitWindow(screenWidth, screenHeight, "Games Warehouse");
     SetTargetFPS(60);
 
-    // tela principal: controls initialization
-    //----------------------------------------------------------------------------------
     int SelecaoRota = 0;
     char ListaRotasTexto[1000] = "";
 
@@ -91,79 +72,25 @@ void RodarInterface()
     PopularListaRotas(ListaRotasTexto);
 
     InicializarRotas();
-    //----------------------------------------------------------------------------------
 
-    // Main game loop
-    while (!WindowShouldClose()) // Detect window close button or ESC key
+    while (!WindowShouldClose()) // Detectar botão de fechar ou ESC clicados
     {
-        // Update
-        //----------------------------------------------------------------------------------
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
         BeginDrawing();
 
         ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
-        // raygui: controls drawing
+        // Cabeçalho da aplicação que mostra as rotas disponíveis
         //----------------------------------------------------------------------------------
-
         GuiToggleGroup((Rectangle){8, 8, (screenWidth - 16 - 2 * (num_rotas - 1)) / (float)num_rotas, 32},
                        ListaRotasTexto, &SelecaoRota);
-        // GuiLabel((Rectangle){8, 8, 160, 32}, "Ola, {{Nome}}}");
+        //----------------------------------------------------------------------------------
+
         RenderizarRotaSelecionada(SelecaoRota);
 
-        //----------------------------------------------------------------------------------
-
         EndDrawing();
-        //----------------------------------------------------------------------------------
     }
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
     CloseWindow(); // Close window and OpenGL context
-                   //--------------------------------------------------------------------------------------
-}
-
-//------------------------------------------------------------------------------------
-// Controls Functions Definitions (local)
-//------------------------------------------------------------------------------------
-
-void PopularListaJogos(char *out)
-{
-    Lista *lista = ContarEstoque();
-
-    if (lista == NULL)
-    {
-        TraceLog(LOG_ERROR, "Erro ao contar estoque");
-        abort();
-    }
-
-    char string_jogo_id[] = "JOGO#XXXXX";
-    for (ItemLista *i = lista->primeiro; i != NULL; i = i->proximo)
-    {
-        Contagem *cont = (Contagem *)(i->dados);
-
-        if (cont == NULL)
-        {
-            TraceLog(LOG_ERROR, "Erro ao contar estoque");
-            abort();
-        }
-
-        sprintf(&string_jogo_id[5], "%.5d", cont->id_produto % 100000);
-
-        int chars_escritos;
-
-        if (i->proximo != NULL)
-            chars_escritos = sprintf(out, "%s; ", string_jogo_id);
-        else
-            chars_escritos = sprintf(out, "%s", string_jogo_id);
-
-        out += chars_escritos;
-    }
-
-    *out = 0;
 }
 
 void PopularListaRotas(char *out)

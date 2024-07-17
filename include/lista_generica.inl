@@ -1,6 +1,7 @@
 #include "macro_kit.h"
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifndef INCLUDE_LIST_TYPE_INL
 #error This file should only be included from headers \

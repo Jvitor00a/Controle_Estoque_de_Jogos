@@ -1,6 +1,7 @@
 #include "consulta.h"
 #include "raygui.h"
 #include "raylib.h"
+#include "registro.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +13,7 @@ Produto BuscarProdutoPorID(int id)
 
     FILE *file = fopen("data/produtos.txt", "r");
     Produto produto;
-    Produto produto_nao_encontrado = {0, "", "", 0.0, 0};
+    Produto produto_nao_encontrado = {0, "", "", 0.0};
 
     if (file == NULL)
     {
@@ -20,8 +21,7 @@ Produto BuscarProdutoPorID(int id)
         return produto_nao_encontrado;
     }
 
-    while (fscanf(file, "%d %s %s %f %d", &produto.id, produto.nome, produto.categoria, &produto.preco,
-                  &produto.quantidade) != EOF)
+    while (fscanf(file, "%d %s %s %lf\n", &produto.id, produto.nome, produto.categoria, &produto.valor_unitario) != EOF)
     {
         if (produto.id == id)
         {
@@ -38,7 +38,7 @@ Produto BuscarProdutoPorNome(char *nome)
 {
     FILE *file = fopen("data/produtos.txt", "r");
     Produto produto;
-    Produto produto_nao_encontrado = {0, "", "", 0.0, 0};
+    Produto produto_nao_encontrado = {0, "", "", 0.0};
 
     if (file == NULL)
     {
@@ -46,8 +46,7 @@ Produto BuscarProdutoPorNome(char *nome)
         return produto_nao_encontrado;
     }
 
-    while (fscanf(file, "%d %s %s %f %d", &produto.id, produto.nome, produto.categoria, &produto.preco,
-                  &produto.quantidade) != EOF)
+    while (fscanf(file, "%d %s %s %lf\n", &produto.id, produto.nome, produto.categoria, &produto.valor_unitario) != EOF)
     {
         if (strcmp(produto.nome, nome) == 0)
         {
@@ -71,8 +70,8 @@ void ExibirProduto(Produto produto)
         printf("ID: %d\n", produto.id);
         printf("Nome: %s\n", produto.nome);
         printf("Categoria: %s\n", produto.categoria);
-        printf("Valor: %.2f\n", produto.preco);
-        printf("Quantidade: %d\n", produto.quantidade);
+        printf("Valor: %.2lf\n", produto.valor_unitario);
+        printf("Quantidade: %d\n", ContarProduto(produto.id));
     }
 }
 
@@ -135,8 +134,8 @@ void RenderizarRotaDePesquisa()
             snprintf(id_produto, sizeof(id_produto), "%d", produto_encontrado.id);
             snprintf(nome_produto, sizeof(nome_produto), "%s", produto_encontrado.nome);
             snprintf(categoria_produto, sizeof(categoria_produto), "%s", produto_encontrado.categoria);
-            snprintf(valor_produto, sizeof(valor_produto), "%.2f", produto_encontrado.preco);
-            snprintf(qtd_produto, sizeof(qtd_produto), "%d", produto_encontrado.quantidade);
+            snprintf(valor_produto, sizeof(valor_produto), "%.2lf", produto_encontrado.valor_unitario);
+            snprintf(qtd_produto, sizeof(qtd_produto), "%d", ContarProduto(produto_encontrado.id));
             strcpy(texto_resultado_busca, "Produto encontrado!");
             produto_encontrado_com_sucesso = true;
         }
