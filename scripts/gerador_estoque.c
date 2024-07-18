@@ -29,7 +29,15 @@ void gerar_registro_estoque()
         int id_produto = rand() % NUM_PRODUTOS + 1;
         int quantidade = rand() % QUANTIDADE_MAX + 1;
         double valor_unitario = rand() % VALOR_UNIT_MAX + 1;
-        long timestamp = time(NULL); // Obter o timestamp atual
+        
+        // Obter o timestamp atual
+        time_t agora = time(NULL);
+
+        // Definir o intervalo de tempo em segundos (5 anos)
+        time_t intervalo = 5 * 365 * 24 * 60 * 60; // 5 anos em segundos
+
+        // Gerar um número aleatório dentro do intervalo de 5 anos
+        time_t timestamp = agora - (rand() % intervalo);
 
         fprintf(fd, FORMATO_LINHA_REGISTRO, tipo_registro, id_produto, quantidade, valor_unitario, timestamp);
     }

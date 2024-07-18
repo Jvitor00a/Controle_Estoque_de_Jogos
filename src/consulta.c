@@ -9,8 +9,6 @@
 
 Produto BuscarProdutoPorID(int id)
 {
-    printf("Pesquisando produto %d\n", id);
-
     FILE *file = fopen("data/produtos.txt", "r");
     Produto produto;
     Produto produto_nao_encontrado = {0, "", "", 0.0};

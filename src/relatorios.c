@@ -1,4 +1,6 @@
 #include "relatorios.h"
+#include "consulta.h"
+#include "datas.h"
 #include "registro.h"
 #include <raygui.h>
 #include <raylib.h>
@@ -16,6 +18,34 @@ bool TransacaoDentroDoIntervalo(struct tm *tempo_transacao)
     time_t tempo_transacao_t = mktime(tempo_transacao);
     return difftime(tempo_transacao_t, mktime(&data_inicio)) >= 0 &&
            difftime(tempo_transacao_t, mktime(&data_fim)) <= 0;
+}
+
+// Assume que Janeiro = 0
+int DiasNoMês(int mês, int ano)
+{
+    struct tm time_in = {0, 0, 0, 1, mês, ano - 1900};
+    struct tm time_out;
+
+    // Passa para o próximo mês
+    time_in.tm_mon += 1;
+
+    // time_in agora se refere ao primeiro dia do próximo mês
+    mktime(&time_in);
+
+    // Pegamos agora o dia anterior, ou seja, o último do mês especificado
+    time_in.tm_mday = 0;
+
+    // Normalizar novamente a estrutura
+    mktime(&time_in);
+
+    return time_in.tm_mday;
+}
+
+int ObterAnoAtual()
+{
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    return tm.tm_year + 1900;
 }
 
 // Função que lê o arquivo, filtra por produto e gera relatório
@@ -75,7 +105,7 @@ RelatorioProduto *GerarRelatorioPorProduto(int id_produto)
 }
 
 // Função para ler o arquivo de registros, gerar o relatório por categoria
-RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
+RelatorioCategoria *GerarRelatorioPorCategoria(const char *nome_categoria)
 {
     FILE *arquivo = fopen(ARQUIVO_REGISTRO, "r");
     if (arquivo == NULL)
@@ -84,8 +114,7 @@ RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
         return NULL;
     }
 
-    RelatorioCategoria *relatorio =
-        (RelatorioCategoria *)malloc(100 * sizeof(RelatorioCategoria)); // Supondo um máximo de 100 categorias
+    RelatorioCategoria *relatorio = (RelatorioCategoria *)malloc(sizeof(RelatorioCategoria));
     if (relatorio == NULL)
     {
         printf("Erro ao alocar memória\n");
@@ -93,17 +122,12 @@ RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
         return NULL;
     }
 
-    *num_categorias = 0;
-
-    // Inicializar totais de categorias
-    for (int i = 0; i < 100; i++)
-    {
-        relatorio[i].id_categoria = -1; // Marcar como inválido
-        relatorio[i].total_entradas = 0;
-        relatorio[i].total_saidas = 0;
-        relatorio[i].custo_total = 0.0;
-        relatorio[i].valor_total_vendas = 0.0;
-    }
+    // Inicializar o relatório para a categoria fornecida
+    strcpy(relatorio->nome_categoria, nome_categoria);
+    relatorio->total_entradas = 0;
+    relatorio->total_saidas = 0;
+    relatorio->custo_total = 0;
+    relatorio->valor_total_vendas = 0;
 
     char linha[100];
     Transacao transacao;
@@ -114,8 +138,12 @@ RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
         sscanf(linha, FORMATO_LINHA_REGISTRO, &transacao.tipo, &transacao.id_produto, &transacao.quantidade,
                &transacao.preço_unitario, &transacao.timestamp);
 
-        // Exemplo simples de cálculo da categoria
-        int id_categoria = transacao.id_produto % 100; // Exemplo de mapeamento simples
+        Produto produto = BuscarProdutoPorID(transacao.id_produto);
+        if (produto.id == 0)
+        {
+            TraceLog(LOG_ERROR, "Não foi possível encontrar produto com id especificado");
+            continue;
+        }
 
         // Verificar se a transação está dentro do intervalo de datas
         struct tm *tempo_transacao = localtime(&transacao.timestamp);
@@ -123,43 +151,27 @@ RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
         if (tempo_transacao == NULL)
         {
             printf("Erro ao converter timestamp da transacao\n");
-            abort();
+            continue;
         }
 
-        // Procurar se a categoria já está no relatório
-        bool categoria_encontrada = false;
-        for (int i = 0; i < *num_categorias; i++)
+        // Ignorar transações fora do intervalo de datas
+        if (!TransacaoDentroDoIntervalo(tempo_transacao))
         {
-            if (relatorio[i].id_categoria == id_categoria)
+            continue;
+        }
+
+        // Atualizar os totais da categoria se a categoria corresponder
+        if (strcmp(produto.categoria, nome_categoria) == 0)
+        {
+            if (transacao.tipo == IDENTIFICADOR_ENTRADA)
             {
-                categoria_encontrada = true;
-                break;
+                relatorio->total_entradas += transacao.quantidade;
+                relatorio->custo_total += transacao.quantidade * transacao.preço_unitario;
             }
-        }
-
-        // Se a categoria não foi encontrada, adicioná-la ao relatório
-        if (!categoria_encontrada)
-        {
-            relatorio[*num_categorias].id_categoria = id_categoria;
-            (*num_categorias)++;
-        }
-
-        // Atualizar os totais da categoria
-        for (int i = 0; i < *num_categorias; i++)
-        {
-            if (relatorio[i].id_categoria == id_categoria && TransacaoDentroDoIntervalo(tempo_transacao))
+            else if (transacao.tipo == IDENTIFICADOR_SAIDA)
             {
-                if (transacao.tipo == IDENTIFICADOR_ENTRADA)
-                {
-                    relatorio[i].total_entradas += transacao.quantidade;
-                    relatorio[i].custo_total += transacao.quantidade * transacao.preço_unitario;
-                }
-                else if (transacao.tipo == IDENTIFICADOR_SAIDA)
-                {
-                    relatorio[i].total_saidas += transacao.quantidade;
-                    relatorio[i].valor_total_vendas += transacao.quantidade * transacao.preço_unitario;
-                }
-                break;
+                relatorio->total_saidas += transacao.quantidade;
+                relatorio->valor_total_vendas += transacao.quantidade * transacao.preço_unitario;
             }
         }
     }
@@ -168,95 +180,363 @@ RelatorioCategoria *GerarRelatorioPorCategoria(int *num_categorias)
     return relatorio;
 }
 
-bool WindowBox000Active = true;
-bool DropdownBox002EditMode = false;
-int DropdownBox002Active = 0;
-bool DropdownBox004EditMode = false;
-int DropdownBox004Active = 0;
-bool DropdownBox005EditMode = false;
-int DropdownBox005Active = 0;
-bool DropdownBox007EditMode = false;
-int DropdownBox007Active = 0;
-bool DropdownBox008EditMode = false;
-int DropdownBox008Active = 0;
-bool DropdownBox009EditMode = false;
-int DropdownBox009Active = 0;
-bool TextBox010EditMode = false;
-char TextBox010Text[128] = "999";
-bool TextBox011EditMode = false;
-char TextBox011Text[128] = "999";
-bool TextBox017EditMode = false;
-char TextBox017Text[128] = "999";
-bool TextBox019EditMode = false;
-char TextBox019Text[128] = "99,99";
-bool TextBox023EditMode = false;
-char TextBox023Text[128] = "SAMPLE TEXT";
-bool TextBox025EditMode = false;
-char TextBox025Text[128] = "9999,99";
-bool DropdownBox028EditMode = false;
-int DropdownBox028Active = 0;
-bool DropdownBox030EditMode = false;
-int DropdownBox030Active = 0;
-bool Button031Pressed = false;
+// Cria uma string que contém o nome de todos os produtos separados por ';'
+static char *CriarOpçõesParaListaProdutos()
+{
+    ListaProduto lista = ListarProdutos();
+    size_t tamanho_total = 0;
+    char *separador = ";";
+
+    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    {
+        Produto *prod = ListaProdutoNóObter(nó);
+
+        if (prod == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao contar estoque");
+            abort();
+        }
+
+        tamanho_total += strlen(prod->nome);
+
+        if (ListaProdutoNóProximo(nó) != NULL)
+            tamanho_total += strlen(separador);
+    }
+
+    char *out = malloc(tamanho_total + 1); // +1 para o \0
+
+    if (out == NULL)
+    {
+        TraceLog(LOG_ERROR, "Erro ao alocar memória para a lista de jogos\n");
+        abort();
+    }
+
+    *out = '\0';
+
+    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    {
+        Produto *prod = ListaProdutoNóObter(nó);
+
+        if (prod == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao contar estoque");
+            abort();
+        }
+
+        strcat(out, prod->nome);
+
+        if (ListaProdutoNóProximo(nó) != NULL)
+            strcat(out, separador);
+    }
+
+    ListaProdutoDescartar(&lista);
+
+    return out;
+}
+
+// Cria uma string que contém o nome de todas as categorias existentes
+static char *CriarOpçõesParaListaCategorias()
+{
+    ListaProduto lista = ListarProdutos();
+    size_t tamanho_total = 0;
+    char *separador = ";", *out = malloc(0);
+    out[0] = '\0';
+
+    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    {
+        Produto *prod = ListaProdutoNóObter(nó);
+
+        if (prod == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao contar estoque");
+            abort();
+        }
+
+        // Categoria já adicionada
+        if (strstr(out, prod->categoria))
+            continue;
+
+        // Nova categoria
+        out = realloc(out, strlen(out) + strlen(separador) + strlen(prod->categoria) + 1);
+        strcat(out, prod->categoria);
+        strcat(out, separador);
+    }
+
+    // Remove o último separador
+    out[strlen(out) - strlen(separador)] = 0;
+
+    ListaProdutoDescartar(&lista);
+
+    return out;
+}
+
+void BotaoGerarRelatorioPressionado();
+
+// Limite inferior da data das transações que entrarão no relatório
+bool dia_inicio_filtro_editando = false;
+int dia_inicio_filtro = 0;
+bool mes_inicio_filtro_editando = false;
+int mes_inicio_filtro = 0;
+bool ano_inicio_filtro_editando = false;
+int ano_inicio_filtro = -1;
+
+// Limite superior da data das transações que entrarão no relatório
+bool dia_fim_filtro_editando = false;
+int dia_fim_filtro = 31;
+bool mes_fim_filtro_editando = false;
+int mes_fim_filtro = 11; // Dezembro
+bool ano_fim_filtro_editando = false;
+int ano_fim_filtro = -1;
+
+// Tipo de relatório (por produto ou por categoria)
+bool seletor_tipo_relatorio_editando = false;
+int seletor_tipo_relatorio_idx_selecionado = 0;
+
+// A categoria ou o produto selecionado
+char conteudo_botao_especificar_produto[128] = "Escolha um produto";
+char *seletor_dados_relatorio_opções = "";
+int id_produto_selecionado;
+char categoria_selecionada[128] = "";
+
+// Placeholders para os dados do relatório
+char conteudo_caixa_texto_unidades_compradas[16] = "";
+char conteudo_caixa_texto_unidades_vendidas[16] = "";
+char conteudo_caixa_texto_balanço[16] = "";
+char conteudo_caixa_texto_custo_unitario[16] = "";
+char conteudo_caixa_texto_lucro_unitario[16] = "";
+char conteudo_caixa_texto_lucro_total[16] = "";
+
+bool janela_especificar_dados_ativa = false;
+int janela_especificar_dados_idx_rolagem = 0;
+int janela_especificar_dados_idx_selecionado = 0;
+char *titulos_janela_especificar_dados[] = {"Selecionar produto", "Selecionar categoria"};
+int ano_atual;
 
 void RenderizarRotaRelatorios()
 {
-    if (DropdownBox002EditMode || DropdownBox004EditMode || DropdownBox005EditMode || DropdownBox007EditMode ||
-        DropdownBox008EditMode || DropdownBox009EditMode || DropdownBox028EditMode || DropdownBox030EditMode)
+    switch (seletor_tipo_relatorio_idx_selecionado)
+    {
+    // Relatório por produto
+    case 0:
+        seletor_dados_relatorio_opções = CriarOpçõesParaListaProdutos();
+        if (id_produto_selecionado == 0)
+        {
+            strcpy(conteudo_botao_especificar_produto, "Escolha um produto");
+        }
+        else
+        {
+            strcpy(conteudo_botao_especificar_produto, BuscarProdutoPorID(id_produto_selecionado).nome);
+        }
+        break;
+
+    // Relatório por categoria
+    case 1:
+        seletor_dados_relatorio_opções = CriarOpçõesParaListaCategorias();
+
+        if (strlen(categoria_selecionada) == 0)
+        {
+            strcpy(conteudo_botao_especificar_produto, "Escolha uma categoria");
+        }
+        else
+        {
+            strcpy(conteudo_botao_especificar_produto, categoria_selecionada);
+        }
+        break;
+    }
+
+    if (mes_inicio_filtro_editando || mes_fim_filtro_editando || seletor_tipo_relatorio_editando ||
+        janela_especificar_dados_ativa)
         GuiLock();
 
-    if (WindowBox000Active)
+    /**
+     * As chamadas de função para renderizar os dados do relatório devem aparecer primeiro pois
+     * os dropdowns têm prioridade de renderização (devem aparecer por cima).
+     */
+
+    GuiLabel((Rectangle){144, 136, 120, 24}, "Unidades compradas:");
+    GuiTextBox((Rectangle){144, 152, 120, 24}, conteudo_caixa_texto_unidades_compradas, 128, false);
+    GuiLabel((Rectangle){264, 152, 40, 24}, " un(s).");
+
+    GuiLabel((Rectangle){352, 136, 104, 24}, "Unidades vendidas:");
+    GuiTextBox((Rectangle){352, 152, 120, 24}, conteudo_caixa_texto_unidades_vendidas, 128, false);
+    GuiLabel((Rectangle){472, 152, 40, 24}, " un(s).");
+
+    GuiLabel((Rectangle){144, 192, 120, 24}, "Custo unitário médio:");
+    GuiLabel((Rectangle){128, 208, 16, 24}, "R$");
+    GuiTextBox((Rectangle){144, 208, 120, 24}, conteudo_caixa_texto_custo_unitario, 128, false);
+
+    GuiLabel((Rectangle){352, 192, 120, 24}, "Lucro unitário médio");
+    GuiLabel((Rectangle){336, 208, 16, 24}, "R$");
+    GuiTextBox((Rectangle){352, 208, 120, 24}, conteudo_caixa_texto_lucro_unitario, 128, false);
+
+    GuiLabel((Rectangle){144, 240, 120, 24}, "Balanço:");
+    GuiTextBox((Rectangle){144, 256, 120, 24}, conteudo_caixa_texto_balanço, 128, false);
+    GuiLabel((Rectangle){264, 256, 40, 24}, " un(s).");
+
+    GuiLabel((Rectangle){352, 240, 120, 24}, "Lucro total:");
+    GuiLabel((Rectangle){336, 256, 16, 24}, "R$");
+    GuiTextBox((Rectangle){352, 256, 120, 24}, conteudo_caixa_texto_lucro_total, 128, false);
+
+    GuiGroupBox((Rectangle){8, 48, 584, 80}, "Filtros");
+
+    GuiLabel((Rectangle){40, 96, 112, 24}, "Gerar relatório por");
+    GuiLabel((Rectangle){16, 56, 32, 24}, "Início");
+    GuiLabel((Rectangle){336, 56, 24, 24}, "Fim");
+
+    if (GuiButton((Rectangle){464, 96, 120, 24}, "Gerar"))
     {
+        BotaoGerarRelatorioPressionado();
+    }
 
-        GuiGroupBox((Rectangle){8, 48, 584, 80}, "Filtros");
-        // Escolha data de inicio do relatorio
-        GuiLabel((Rectangle){16, 56, 32, 24}, "Início");
-        if (GuiDropdownBox((Rectangle){48, 56, 48, 24}, "10", &DropdownBox002Active, DropdownBox002EditMode))
-            DropdownBox002EditMode = !DropdownBox002EditMode;
-        if (GuiDropdownBox((Rectangle){96, 56, 120, 24}, "Janeiro", &DropdownBox004Active, DropdownBox004EditMode))
-            DropdownBox004EditMode = !DropdownBox004EditMode;
-        if (GuiDropdownBox((Rectangle){216, 56, 56, 24}, "1900", &DropdownBox005Active, DropdownBox005EditMode))
-            DropdownBox005EditMode = !DropdownBox005EditMode;
+    // Escolha do tipo de relatorio
+    if (GuiDropdownBox((Rectangle){152, 96, 120, 24}, "Produto; Categoria", &seletor_tipo_relatorio_idx_selecionado,
+                       seletor_tipo_relatorio_editando))
+        seletor_tipo_relatorio_editando = !seletor_tipo_relatorio_editando;
 
-        // Escolha data de fim do relatorio
-        GuiLabel((Rectangle){336, 56, 24, 24}, "Fim");
-        if (GuiDropdownBox((Rectangle){360, 56, 48, 24}, "10", &DropdownBox007Active, DropdownBox007EditMode))
-            DropdownBox007EditMode = !DropdownBox007EditMode;
-        if (GuiDropdownBox((Rectangle){408, 56, 120, 24}, "Janeiro", &DropdownBox008Active, DropdownBox008EditMode))
-            DropdownBox008EditMode = !DropdownBox008EditMode;
-        if (GuiDropdownBox((Rectangle){528, 56, 56, 24}, "1900", &DropdownBox009Active, DropdownBox009EditMode))
-            DropdownBox009EditMode = !DropdownBox009EditMode;
+    if (GuiButton((Rectangle){280, 96, 128, 24}, conteudo_botao_especificar_produto))
+        janela_especificar_dados_ativa = !janela_especificar_dados_ativa;
 
-        // Escolha do tipo de relatorio
-        GuiLabel((Rectangle){40, 96, 112, 24}, "Gerar relatório por");
-        if (GuiDropdownBox((Rectangle){152, 96, 120, 24}, "Produto; Categoria", &DropdownBox028Active,
-                           DropdownBox028EditMode))
-            DropdownBox028EditMode = !DropdownBox028EditMode;
-        if (GuiDropdownBox((Rectangle){280, 96, 120, 24}, "ProdutoC6", &DropdownBox030Active, DropdownBox030EditMode))
-            DropdownBox030EditMode = !DropdownBox030EditMode;
+    // Escolha data de inicio do relatorio
+    ano_atual = ObterAnoAtual();
+    if (ano_fim_filtro < 0)
+        ano_fim_filtro = ano_atual;
+    if (ano_inicio_filtro < 0)
+        ano_inicio_filtro = ano_atual;
 
-        Button031Pressed = GuiButton((Rectangle){464, 96, 120, 24}, "Gerar");
+    if (GuiValueBox((Rectangle){48, 56, 48, 24}, "", &dia_inicio_filtro, 1,
+                    DiasNoMês(mes_inicio_filtro, ano_inicio_filtro), dia_inicio_filtro_editando))
+        dia_inicio_filtro_editando = !dia_inicio_filtro_editando;
+    if (GuiDropdownBox((Rectangle){96, 56, 120, 24}, meses_do_ano, &mes_inicio_filtro, mes_inicio_filtro_editando))
+        mes_inicio_filtro_editando = !mes_inicio_filtro_editando;
+    if (GuiValueBox((Rectangle){216, 56, 56, 24}, "", &ano_inicio_filtro, 1900, ano_atual, ano_inicio_filtro_editando))
+        ano_inicio_filtro_editando = !ano_inicio_filtro_editando;
 
-        GuiTextBox((Rectangle){144, 152, 120, 24}, TextBox010Text, 128, false);
-        GuiTextBox((Rectangle){352, 152, 120, 24}, TextBox011Text, 128, false);
+    // Escolha data de fim do relatorio
+    if (GuiValueBox((Rectangle){360, 56, 48, 24}, "", &dia_fim_filtro, 1, DiasNoMês(mes_fim_filtro, ano_fim_filtro),
+                    dia_fim_filtro_editando))
+        dia_fim_filtro_editando = !dia_fim_filtro_editando;
+    if (GuiDropdownBox((Rectangle){408, 56, 120, 24}, meses_do_ano, &mes_fim_filtro, mes_fim_filtro_editando))
+        mes_fim_filtro_editando = !mes_fim_filtro_editando;
+    if (GuiValueBox((Rectangle){528, 56, 56, 24}, "", &ano_fim_filtro, 1900, ano_atual, ano_fim_filtro_editando))
+        ano_fim_filtro_editando = !ano_fim_filtro_editando;
 
-        GuiLabel((Rectangle){144, 136, 120, 24}, "Unidades compradas:");
-        GuiLabel((Rectangle){352, 136, 104, 24}, "Unidades vendidas:");
-        GuiLabel((Rectangle){144, 240, 120, 24}, "Balanço:");
-        GuiLabel((Rectangle){264, 152, 40, 24}, " un(s).");
-        GuiLabel((Rectangle){472, 152, 40, 24}, " un(s).");
-        GuiTextBox((Rectangle){144, 256, 120, 24}, TextBox017Text, 128, false);
-        GuiLabel((Rectangle){264, 256, 40, 24}, " un(s).");
-        GuiTextBox((Rectangle){144, 208, 120, 24}, TextBox019Text, 128, false);
-        GuiLabel((Rectangle){144, 192, 120, 24}, "Custo unitário médio:");
-        GuiLabel((Rectangle){128, 208, 16, 24}, "R$");
-        GuiLabel((Rectangle){352, 192, 120, 24}, "Lucro unitário médio");
-        GuiTextBox((Rectangle){352, 208, 120, 24}, TextBox023Text, 128, false);
-        GuiLabel((Rectangle){336, 208, 16, 24}, "R$");
-        GuiTextBox((Rectangle){352, 256, 120, 24}, TextBox025Text, 128, false);
-        GuiLabel((Rectangle){352, 240, 120, 24}, "Lucro total:");
-        GuiLabel((Rectangle){336, 256, 16, 24}, "R$");
+    if (janela_especificar_dados_ativa)
+    {
+        GuiUnlock();
+
+        janela_especificar_dados_ativa = !GuiWindowBox(
+            (Rectangle){196, 122, 208, 168}, titulos_janela_especificar_dados[seletor_tipo_relatorio_idx_selecionado]);
+
+        GuiListView((Rectangle){204, 154, 192, 96}, seletor_dados_relatorio_opções,
+                    &janela_especificar_dados_idx_rolagem, &janela_especificar_dados_idx_selecionado);
+
+        if (GuiButton((Rectangle){236, 258, 120, 24}, "Salvar"))
+        {
+            janela_especificar_dados_ativa = !janela_especificar_dados_ativa;
+            SalvarEscolhaDadosRelatorio();
+        }
     }
 
     GuiUnlock();
+}
+
+void SalvarEscolhaDadosRelatorio()
+{
+    char *copia_opções = malloc(strlen(seletor_dados_relatorio_opções) + 1);
+    strcpy(copia_opções, seletor_dados_relatorio_opções);
+
+    // Pode conter um nome de produto ou uma categoria
+    char *item = strtok(copia_opções, ";");
+    int i = 0;
+    while (item != NULL)
+    {
+        if (i == janela_especificar_dados_idx_selecionado)
+        {
+            switch (seletor_tipo_relatorio_idx_selecionado)
+            {
+            case 0: // Produto
+                id_produto_selecionado = BuscarProdutoPorNome(item).id;
+                break;
+            case 1: // Categoria
+                strcpy(categoria_selecionada, item);
+                break;
+            }
+
+            break;
+        }
+
+        i++;
+        item = strtok(NULL, ";");
+    }
+}
+
+void BotaoGerarRelatorioPressionado()
+{
+    // Configurar intervalo de datas
+    struct tm data_inicio_temp = {0, 0, 0, dia_inicio_filtro, mes_inicio_filtro, ano_inicio_filtro - 1900};
+    struct tm data_fim_temp = {59, 59, 23, dia_fim_filtro, mes_fim_filtro, ano_fim_filtro - 1900};
+
+    data_inicio = data_inicio_temp;
+    data_fim = data_fim_temp;
+
+    if (seletor_tipo_relatorio_idx_selecionado == 0) // Relatório por produto
+    {
+        if (id_produto_selecionado == 0)
+        {
+            TraceLog(LOG_ERROR, "Nenhum produto selecionado para o relatório.");
+            return;
+        }
+
+        RelatorioProduto *relatorio = GerarRelatorioPorProduto(id_produto_selecionado);
+        if (relatorio == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao gerar relatório de produto.");
+            return;
+        }
+
+        snprintf(conteudo_caixa_texto_unidades_compradas, sizeof(conteudo_caixa_texto_unidades_compradas), "%d",
+                 relatorio->total_entradas);
+        snprintf(conteudo_caixa_texto_unidades_vendidas, sizeof(conteudo_caixa_texto_unidades_vendidas), "%d",
+                 relatorio->total_saidas);
+        snprintf(conteudo_caixa_texto_balanço, sizeof(conteudo_caixa_texto_balanço), "%d",
+                 relatorio->total_entradas - relatorio->total_saidas);
+        snprintf(conteudo_caixa_texto_custo_unitario, sizeof(conteudo_caixa_texto_custo_unitario), "%.2f",
+                 relatorio->total_entradas ? relatorio->custo_total / relatorio->total_entradas : 0);
+        snprintf(conteudo_caixa_texto_lucro_unitario, sizeof(conteudo_caixa_texto_lucro_unitario), "%.2f",
+                 relatorio->total_saidas ? relatorio->valor_total_vendas / relatorio->total_saidas : 0);
+        snprintf(conteudo_caixa_texto_lucro_total, sizeof(conteudo_caixa_texto_lucro_total), "%.2f",
+                 relatorio->valor_total_vendas - relatorio->custo_total);
+
+        free(relatorio);
+    }
+    else if (seletor_tipo_relatorio_idx_selecionado == 1) // Relatório por categoria
+    {
+        if (strlen(categoria_selecionada) == 0)
+        {
+            TraceLog(LOG_ERROR, "Nenhuma categoria selecionada para o relatório.");
+            return;
+        }
+
+        RelatorioCategoria *relatorio = GerarRelatorioPorCategoria(categoria_selecionada);
+        if (relatorio == NULL)
+        {
+            TraceLog(LOG_ERROR, "Erro ao gerar relatório de categoria.");
+            return;
+        }
+
+        snprintf(conteudo_caixa_texto_unidades_compradas, sizeof(conteudo_caixa_texto_unidades_compradas), "%d",
+                 relatorio->total_entradas);
+        snprintf(conteudo_caixa_texto_unidades_vendidas, sizeof(conteudo_caixa_texto_unidades_vendidas), "%d",
+                 relatorio->total_saidas);
+        snprintf(conteudo_caixa_texto_balanço, sizeof(conteudo_caixa_texto_balanço), "%d",
+                 relatorio->total_entradas - relatorio->total_saidas);
+        snprintf(conteudo_caixa_texto_custo_unitario, sizeof(conteudo_caixa_texto_custo_unitario), "%.2f",
+                 relatorio->total_entradas ? relatorio->custo_total / relatorio->total_entradas : 0);
+        snprintf(conteudo_caixa_texto_lucro_unitario, sizeof(conteudo_caixa_texto_lucro_unitario), "%.2f",
+                 relatorio->total_saidas ? relatorio->valor_total_vendas / relatorio->total_saidas : 0);
+        snprintf(conteudo_caixa_texto_lucro_total, sizeof(conteudo_caixa_texto_lucro_total), "%.2f",
+                 relatorio->valor_total_vendas - relatorio->custo_total);
+
+        free(relatorio);
+    }
 }

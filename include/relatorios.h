@@ -24,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-    int id_categoria;
+    char nome_categoria[128];
     int total_entradas;
     int total_saidas;
     double custo_total;
@@ -32,8 +32,10 @@ typedef struct
 } RelatorioCategoria;
 
 RelatorioProduto *GerarRelatorioPorProduto(int id_produto);
-RelatorioCategoria *GerarRelatorioPorCategoria(int *numCategorias);
+RelatorioCategoria *GerarRelatorioPorCategoria(const char *);
 
 void RenderizarRotaRelatorios();
+
+void SalvarEscolhaDadosRelatorio();
 
 #endif // RELATORIO_ESTOQUE_H

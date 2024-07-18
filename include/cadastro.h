@@ -22,6 +22,5 @@ typedef struct ResultadoCadastro
 } ResultadoCadastro;
 
 ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float);
-bool InicializarCadastro();
 
 #endif

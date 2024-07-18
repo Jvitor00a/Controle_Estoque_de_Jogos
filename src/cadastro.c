@@ -102,10 +102,3 @@ ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float valor_unit
     resultado.produto = novo_produto;
     return resultado;
 }
-
-// Realizar todas operações necessárias para poder utilizar
-// o cadastro corretamente
-bool InicializarCadastro()
-{
-    return CarregarProdutos();
-}

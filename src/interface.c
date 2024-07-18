@@ -58,7 +58,7 @@ void RenderizarRotaSelecionada(int selecionada)
 void RodarInterface()
 {
     int screenWidth = 600;
-    int screenHeight = 380;
+    int screenHeight = 400;
 
     InitWindow(screenWidth, screenHeight, "Games Warehouse");
     SetTargetFPS(60);

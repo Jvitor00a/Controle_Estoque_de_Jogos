@@ -259,7 +259,7 @@ bool editando_quantidade = false;
 char *texto_lista_jogos = NULL;
 ListaProduto lista_produtos;
 
-char *CriarListaJogos()
+static char *CriarListaProdutos()
 {
     size_t tamanho_total = 0;
     char *separador = "; ";
@@ -312,7 +312,6 @@ char *CriarListaJogos()
 void InicializarRotaEstoque()
 {
     LimparEstoque();
-    InicializarCadastro();
 }
 
 static void BotaoCancelarClicado(); // Logica do botao de cancelar
@@ -348,7 +347,7 @@ void RenderizarRotaEstoque()
         indice_jogo_selecionado_anterior = indice_jogo_selecionado;
     }
 
-    texto_lista_jogos = CriarListaJogos();
+    texto_lista_jogos = CriarListaProdutos();
 
     GuiLabel((Rectangle){8, 36, 120, 24}, "Jogos");
     GuiListView((Rectangle){8, 56, 384, 312}, texto_lista_jogos, &lista_jogos_indice_rolagem, &indice_jogo_selecionado);
