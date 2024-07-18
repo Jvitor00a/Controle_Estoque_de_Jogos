@@ -3,7 +3,7 @@
 
 #include "produto.h"
 
-Produto BuscarProdutoPorId(int id);
+Produto BuscarProdutoPorID(int id);
 
 Produto BuscarProdutoPorNome(char *nome);
 

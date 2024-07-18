@@ -108,43 +108,16 @@ char categoria_produto[128] = "Categoria1";
 char valor_produto[128] = "100.00";
 char qtd_produto[128] = "999";
 
+void EditarCaixaTextoPesquisa();
+
 void RenderizarRotaDePesquisa()
 {
-    // raygui: controls drawing
-    //----------------------------------------------------------------------------------
 
     if (GuiTextBox((Rectangle){8, 48, 584, 24}, termo_busca, 128, editando_caixa_texto_pesquisa))
     {
-        editando_caixa_texto_pesquisa = !editando_caixa_texto_pesquisa;
-
-        // Search logic
-        Produto produto_encontrado;
-        if (isNumber(termo_busca))
-        {
-            int id = atoi(termo_busca);
-            produto_encontrado = BuscarProdutoPorID(id);
-        }
-        else
-        {
-            produto_encontrado = BuscarProdutoPorNome(termo_busca);
-        }
-
-        if (produto_encontrado.id != 0)
-        {
-            snprintf(id_produto, sizeof(id_produto), "%d", produto_encontrado.id);
-            snprintf(nome_produto, sizeof(nome_produto), "%s", produto_encontrado.nome);
-            snprintf(categoria_produto, sizeof(categoria_produto), "%s", produto_encontrado.categoria);
-            snprintf(valor_produto, sizeof(valor_produto), "%.2lf", produto_encontrado.valor_unitario);
-            snprintf(qtd_produto, sizeof(qtd_produto), "%d", ContarProduto(produto_encontrado.id));
-            strcpy(texto_resultado_busca, "Produto encontrado!");
-            produto_encontrado_com_sucesso = true;
-        }
-        else
-        {
-            strcpy(texto_resultado_busca, "Produto não encontrado.");
-            produto_encontrado_com_sucesso = false;
-        }
+        EditarCaixaTextoPesquisa();
     }
+
     // Ícone lupa
     GuiLabel((Rectangle){568, 48, 584, 24}, "#42#");
 
@@ -172,4 +145,42 @@ void RenderizarRotaDePesquisa()
         GuiTextBox((Rectangle){256, 312, 120, 24}, qtd_produto, 128, false);
     }
     //----------------------------------------------------------------------------------
+}
+
+// Lógica de busca
+void EditarCaixaTextoPesquisa()
+{
+    editando_caixa_texto_pesquisa = !editando_caixa_texto_pesquisa;
+
+    // Caso o usuário ainda estiver digitando ou caso o termo de busca
+    // esteja vazio, não é necessário fazer uma consulta
+    if (editando_caixa_texto_pesquisa || strlen(termo_busca) == 0)
+        return;
+
+    Produto produto_encontrado;
+    if (isNumber(termo_busca))
+    {
+        int id = atoi(termo_busca);
+        produto_encontrado = BuscarProdutoPorID(id);
+    }
+    else
+    {
+        produto_encontrado = BuscarProdutoPorNome(termo_busca);
+    }
+
+    if (produto_encontrado.id != 0)
+    {
+        snprintf(id_produto, sizeof(id_produto), "%d", produto_encontrado.id);
+        snprintf(nome_produto, sizeof(nome_produto), "%s", produto_encontrado.nome);
+        snprintf(categoria_produto, sizeof(categoria_produto), "%s", produto_encontrado.categoria);
+        snprintf(valor_produto, sizeof(valor_produto), "%.2lf", produto_encontrado.valor_unitario);
+        snprintf(qtd_produto, sizeof(qtd_produto), "%d", ContarProduto(produto_encontrado.id));
+        strcpy(texto_resultado_busca, "Produto encontrado!");
+        produto_encontrado_com_sucesso = true;
+    }
+    else
+    {
+        strcpy(texto_resultado_busca, "Produto não encontrado.");
+        produto_encontrado_com_sucesso = false;
+    }
 }

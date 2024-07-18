@@ -2,6 +2,7 @@
 #define CADASTRO_H
 
 #include "lista_produto.h"
+#include <stdbool.h>
 
 #define ARQUIVO_PRODUTOS "data/produtos.txt"
 
@@ -21,5 +22,6 @@ typedef struct ResultadoCadastro
 } ResultadoCadastro;
 
 ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float);
+bool InicializarCadastro();
 
 #endif

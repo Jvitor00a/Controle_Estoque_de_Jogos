@@ -11,6 +11,7 @@ typedef struct
     int id_produto;
     int quantidade;
     double preço_unitario;
+    long timestamp;
 } Transacao;
 
 typedef struct
@@ -32,5 +33,7 @@ typedef struct
 
 RelatorioProduto *GerarRelatorioPorProduto(int id_produto);
 RelatorioCategoria *GerarRelatorioPorCategoria(int *numCategorias);
+
+void RenderizarRotaRelatorios();
 
 #endif // RELATORIO_ESTOQUE_H

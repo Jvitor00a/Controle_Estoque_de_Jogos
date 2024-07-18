@@ -5,7 +5,7 @@
 #define ARQUIVO_REGISTRO "data/estoque.txt"
 #define PREFIXO_ENTRADA 'E'
 #define PREFIXO_SAIDA 'S'
-#define FORMATO_LINHA_REGISTRO "%c %d %d %lf\n"
+#define FORMATO_LINHA_REGISTRO "%c %d %d %lf %ld\n"
 #define NUM_LINHAS 1000
 #define NUM_PRODUTOS 20
 #define QUANTIDADE_MAX 100
@@ -29,8 +29,9 @@ void gerar_registro_estoque()
         int id_produto = rand() % NUM_PRODUTOS + 1;
         int quantidade = rand() % QUANTIDADE_MAX + 1;
         double valor_unitario = rand() % VALOR_UNIT_MAX + 1;
+        long timestamp = time(NULL); // Obter o timestamp atual
 
-        fprintf(fd, FORMATO_LINHA_REGISTRO, tipo_registro, id_produto, quantidade, valor_unitario);
+        fprintf(fd, FORMATO_LINHA_REGISTRO, tipo_registro, id_produto, quantidade, valor_unitario, timestamp);
     }
 
     fclose(fd);
