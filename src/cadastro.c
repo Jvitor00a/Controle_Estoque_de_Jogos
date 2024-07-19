@@ -112,18 +112,45 @@ ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float valor_unit
 
 char *CodificarString(char *str)
 {
-    char *out = malloc(strlen(str) + 1);
+    size_t len = 0;
+    const char *temp = str;
 
-    while (*str != '\0')
+    // Calculate the length of the encoded string
+    while (*temp)
+    {
+        if (*temp == ' ')
+            len += 3; // "%20" is 3 characters
+        else
+            len++;
+        temp++;
+    }
+
+    char *out = malloc(len + 1); // Allocate memory for the encoded string
+    if (out == NULL)
+    {
+        printf("Erro de alocação de memória.\n");
+        return NULL;
+    }
+
+    char *dest = out;
+
+    // Perform the encoding
+    while (*str)
     {
         if (*str == ' ')
-            strcat(out, "%20");
-
-        strncpy(out, str, 1);
-
+        {
+            strcat(dest, "%20");
+            dest += 3;
+        }
+        else
+        {
+            *dest = *str;
+            dest++;
+        }
         str++;
     }
 
+    *dest = '\0'; // Null-terminate the encoded string
     return out;
 }
 
