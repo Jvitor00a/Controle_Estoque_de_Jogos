@@ -115,17 +115,16 @@ char *CodificarString(char *str)
     size_t len = 0;
     const char *temp = str;
 
-    // Calculate the length of the encoded string
     while (*temp)
     {
         if (*temp == ' ')
-            len += 3; // "%20" is 3 characters
+            len += 3; // %20 tem 3 caracteres
         else
             len++;
         temp++;
     }
 
-    char *out = malloc(len + 1); // Allocate memory for the encoded string
+    char *out = malloc(len + 1);
     if (out == NULL)
     {
         printf("Erro de alocação de memória.\n");
@@ -134,13 +133,13 @@ char *CodificarString(char *str)
 
     char *dest = out;
 
-    // Perform the encoding
     while (*str)
     {
         if (*str == ' ')
         {
-            strcat(dest, "%20");
-            dest += 3;
+            *dest++ = '%';
+            *dest++ = '2';
+            *dest++ = '0';
         }
         else
         {
@@ -150,7 +149,7 @@ char *CodificarString(char *str)
         str++;
     }
 
-    *dest = '\0'; // Null-terminate the encoded string
+    *dest = '\0';
     return out;
 }
 

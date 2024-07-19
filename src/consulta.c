@@ -52,13 +52,12 @@ Produto BuscarProdutoPorNome(char *nome)
 
     while (fscanf(file, "%d %s %s %lf\n", &produto.id, produto.nome, produto.categoria, &produto.valor_unitario) != EOF)
     {
+        DecodificarString(produto.nome);
+
         if (strcmp(produto.nome, nome) == 0)
         {
             fclose(file);
-
-            DecodificarString(produto.nome);
             DecodificarString(produto.categoria);
-
             return produto;
         }
     }
