@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+void DecodificarString(char *str);
+
 Produto BuscarProdutoPorID(int id)
 {
     FILE *file = fopen(ARQUIVO_PRODUTOS, "r");
@@ -24,6 +26,10 @@ Produto BuscarProdutoPorID(int id)
         if (produto.id == id)
         {
             fclose(file);
+
+            DecodificarString(produto.nome);
+            DecodificarString(produto.categoria);
+
             return produto;
         }
     }
@@ -49,6 +55,10 @@ Produto BuscarProdutoPorNome(char *nome)
         if (strcmp(produto.nome, nome) == 0)
         {
             fclose(file);
+
+            DecodificarString(produto.nome);
+            DecodificarString(produto.categoria);
+
             return produto;
         }
     }

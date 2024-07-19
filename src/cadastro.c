@@ -9,6 +9,9 @@
 // Static list to hold products
 static ListaProduto lista_produtos = NULL;
 
+char *CodificarString(char *str);
+void DecodificarString(char *str);
+
 // Function to load products from file
 static bool CarregarProdutos()
 {
@@ -32,6 +35,8 @@ static bool CarregarProdutos()
     while (fscanf(file, "%d %99s %29s %lf\n", &produto->id, produto->nome, produto->categoria,
                   &produto->valor_unitario) != EOF)
     {
+        DecodificarString(produto->nome);
+        DecodificarString(produto->categoria);
         ListaProdutoEmpurrarTras(lista_produtos, produto);
     }
 
@@ -59,7 +64,8 @@ static void SalvarProdutos()
             return;
         }
 
-        fprintf(file, "%d %s %s %lf\n", produto->id, produto->nome, produto->categoria, produto->valor_unitario);
+        fprintf(file, "%d %s %s %lf\n", produto->id, CodificarString(produto->nome),
+                CodificarString(produto->categoria), produto->valor_unitario);
     }
 
     fclose(file);
@@ -102,4 +108,44 @@ ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float valor_unit
 
     resultado.produto = novo_produto;
     return resultado;
+}
+
+char *CodificarString(char *str)
+{
+    char *out = malloc(strlen(str) + 1);
+
+    while (*str != '\0')
+    {
+        if (*str == ' ')
+            strcat(out, "%20");
+
+        strncpy(out, str, 1);
+
+        str++;
+    }
+
+    return out;
+}
+
+void DecodificarString(char *str)
+{
+    char *src = str;
+    char *dest = str;
+
+    while (*src)
+    {
+        if (*src == '%' && *(src + 1) == '2' && *(src + 2) == '0')
+        {
+            *dest = ' ';
+            src += 3;
+        }
+        else
+        {
+            *dest = *src;
+            src++;
+        }
+        dest++;
+    }
+
+    *dest = '\0';
 }
