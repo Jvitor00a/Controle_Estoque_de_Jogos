@@ -261,7 +261,6 @@ static const char *texto_adicionar_novo_jogo = "+ Adicionar novo jogo";
 
 static int lista_jogos_indice_rolagem = 0, indice_jogo_selecionado = 0, indice_jogo_selecionado_anterior = -1,
            quantidade_jogo_selecionado = 0;
-static double valor_unitario_jogo_selecionado = 0;
 static bool editando_quantidade = false;
 static char *texto_lista_jogos = NULL;
 static ListaProduto lista_produtos;
@@ -276,13 +275,13 @@ static bool editando_valor_novo_jogo = false;
 
 static const Vector2 anchor03 = {208, 120};
 
-static char *CriarListaProdutos();
-
 void InicializarRotaEstoque()
 {
     LimparEstoque();
 }
 
+static char *CriarListaProdutos();
+static void PreencherDadosProduto();
 static void BotaoCancelarClicado(); // Logica do botao de cancelar
 static void BotaoSalvarClicado();   // Logica do botao de salvar alterações no estoque
 static void BotãoSalvarNovoJogoClicado();
@@ -296,25 +295,7 @@ void RenderizarRotaEstoque()
 
     if (indice_jogo_selecionado != indice_jogo_selecionado_anterior) // Verifica se a posição foi alterada
     {
-        ListaProdutoNó nó_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
-
-        if (nó_selecionado == NULL)
-        {
-            printf("Encontrado nó inválido na lista de jogos ao renderizar estoque\n");
-            return;
-        }
-
-        Produto *produto_selecionado = ListaProdutoNóObter(nó_selecionado);
-
-        if (produto_selecionado == NULL)
-        {
-            printf("Encontrado produto inválido na lista de jogos ao renderizar estoque\n");
-            return;
-        }
-
-        valor_unitario_jogo_selecionado = produto_selecionado->valor_unitario;
-        quantidade_jogo_selecionado = ContarProduto(produto_selecionado->id);
-        indice_jogo_selecionado_anterior = indice_jogo_selecionado;
+        PreencherDadosProduto();
     }
 
     texto_lista_jogos = CriarListaProdutos();
@@ -350,7 +331,7 @@ void RenderizarRotaEstoque()
                        editando_categoria_novo_jogo))
             editando_categoria_novo_jogo = !editando_categoria_novo_jogo;
         if (GuiValueBox((Rectangle){anchor03.x + 88, anchor03.y + 96, 120, 24}, etiqueta_preço_novo_jogo,
-                        &valor_novo_jogo_centavos, 0, 100, editando_valor_novo_jogo))
+                        &valor_novo_jogo_centavos, 0, 99999, editando_valor_novo_jogo))
             editando_valor_novo_jogo = !editando_valor_novo_jogo;
         GuiLabel((Rectangle){anchor03.x + 56, anchor03.y + 32, 32, 24}, etiqueta_nome);
         GuiLabel((Rectangle){anchor03.x + 32, anchor03.y + 64, 56, 24}, etiqueta_categoria);
@@ -411,6 +392,28 @@ char *CriarListaProdutos()
     }
 
     return out;
+}
+
+void PreencherDadosProduto()
+{
+    ListaProdutoNó nó_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
+
+    // lista de produtos vazia
+    if (nó_selecionado == NULL)
+    {
+        return;
+    }
+
+    Produto *produto_selecionado = ListaProdutoNóObter(nó_selecionado);
+
+    if (produto_selecionado == NULL)
+    {
+        printf("Encontrado produto inválido na lista de jogos ao renderizar estoque\n");
+        return;
+    }
+
+    quantidade_jogo_selecionado = ContarProduto(produto_selecionado->id);
+    indice_jogo_selecionado_anterior = indice_jogo_selecionado;
 }
 
 static void BotaoCancelarClicado()
