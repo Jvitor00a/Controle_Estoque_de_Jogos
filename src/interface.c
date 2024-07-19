@@ -72,7 +72,7 @@ void RodarInterface()
 
     InicializarRotas();
 
-    while (!WindowShouldClose()) // Detectar botão de fechar ou ESC clicados
+    while (!WindowShouldClose()) // Detectar botao de fechar ou ESC clicados
     {
         BeginDrawing();
 

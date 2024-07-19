@@ -48,9 +48,9 @@ ResultadoTransacao RegistrarSaidaProduto(int id_produto, int quantidade, double 
 }
 
 int id_item_procurado = 0;
-bool FiltrarPorId(ListaContagemNó nó)
+bool FiltrarPorId(ListaContagemNo no)
 {
-    Contagem *cont = ListaContagemNóObter(nó);
+    Contagem *cont = ListaContagemNoObter(no);
 
     if (cont == NULL)
         return false;
@@ -95,14 +95,14 @@ ListaContagem ContarEstoque()
             qtd = -qtd;
 
         id_item_procurado = id;
-        ListaContagemNó nó = ListaContagemInicio(resultado);
+        ListaContagemNo no = ListaContagemInicio(resultado);
         Contagem *c;
 
-        while ((c = ListaContagemNóObter(nó)) != NULL)
+        while ((c = ListaContagemNoObter(no)) != NULL)
         {
             if (c->id_produto == id)
                 break;
-            nó = ListaContagemNóProximo(nó);
+            no = ListaContagemNoProximo(no);
         }
 
         if (c == NULL)
@@ -254,8 +254,8 @@ void LimparEstoque()
 // Variáveis para armazenar o estado da interface gráfica
 static const char *etiqueta_nome = "Nome";
 static const char *etiqueta_categoria = "Categoria";
-static const char *etiqueta_preço_novo_jogo = "Preço (centavos) ";
-static const char *texto_botão_salvar = "Salvar";
+static const char *etiqueta_preco_novo_jogo = "Preço (centavos) ";
+static const char *texto_botao_salvar = "Salvar";
 static const char *texto_novo_jogo = "Novo jogo";
 static const char *texto_adicionar_novo_jogo = "+ Adicionar novo jogo";
 
@@ -284,7 +284,7 @@ static char *CriarListaProdutos();
 static void PreencherDadosProduto();
 static void BotaoCancelarClicado(); // Logica do botao de cancelar
 static void BotaoSalvarClicado();   // Logica do botao de salvar alterações no estoque
-static void BotãoSalvarNovoJogoClicado();
+static void BotaoSalvarNovoJogoClicado();
 
 void RenderizarRotaEstoque()
 {
@@ -330,13 +330,13 @@ void RenderizarRotaEstoque()
         if (GuiTextBox((Rectangle){anchor03.x + 88, anchor03.y + 64, 120, 24}, categoria_novo_jogo, 128,
                        editando_categoria_novo_jogo))
             editando_categoria_novo_jogo = !editando_categoria_novo_jogo;
-        if (GuiValueBox((Rectangle){anchor03.x + 88, anchor03.y + 96, 120, 24}, etiqueta_preço_novo_jogo,
+        if (GuiValueBox((Rectangle){anchor03.x + 88, anchor03.y + 96, 120, 24}, etiqueta_preco_novo_jogo,
                         &valor_novo_jogo_centavos, 0, 99999, editando_valor_novo_jogo))
             editando_valor_novo_jogo = !editando_valor_novo_jogo;
         GuiLabel((Rectangle){anchor03.x + 56, anchor03.y + 32, 32, 24}, etiqueta_nome);
         GuiLabel((Rectangle){anchor03.x + 32, anchor03.y + 64, 56, 24}, etiqueta_categoria);
-        if (GuiButton((Rectangle){anchor03.x + 8, anchor03.y + 128, 200, 24}, texto_botão_salvar))
-            BotãoSalvarNovoJogoClicado();
+        if (GuiButton((Rectangle){anchor03.x + 8, anchor03.y + 128, 200, 24}, texto_botao_salvar))
+            BotaoSalvarNovoJogoClicado();
     }
 
     ListaProdutoDescartar(&lista_produtos);
@@ -349,9 +349,9 @@ char *CriarListaProdutos()
     size_t tamanho_total = 0;
     char *separador = "; ";
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista_produtos); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista_produtos); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *prod = ListaProdutoNóObter(nó);
+        Produto *prod = ListaProdutoNoObter(no);
 
         if (prod == NULL)
         {
@@ -361,7 +361,7 @@ char *CriarListaProdutos()
 
         tamanho_total += strlen(prod->nome);
 
-        if (ListaProdutoNóProximo(nó) != NULL)
+        if (ListaProdutoNoProximo(no) != NULL)
             tamanho_total += strlen(separador); // +2 para "; "
     }
 
@@ -375,9 +375,9 @@ char *CriarListaProdutos()
 
     *out = '\0';
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista_produtos); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista_produtos); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *prod = ListaProdutoNóObter(nó);
+        Produto *prod = ListaProdutoNoObter(no);
 
         if (prod == NULL)
         {
@@ -387,7 +387,7 @@ char *CriarListaProdutos()
 
         strcat(out, prod->nome);
 
-        if (ListaProdutoNóProximo(nó) != NULL)
+        if (ListaProdutoNoProximo(no) != NULL)
             strcat(out, separador);
     }
 
@@ -396,15 +396,15 @@ char *CriarListaProdutos()
 
 void PreencherDadosProduto()
 {
-    ListaProdutoNó nó_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
+    ListaProdutoNo no_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
 
     // lista de produtos vazia
-    if (nó_selecionado == NULL)
+    if (no_selecionado == NULL)
     {
         return;
     }
 
-    Produto *produto_selecionado = ListaProdutoNóObter(nó_selecionado);
+    Produto *produto_selecionado = ListaProdutoNoObter(no_selecionado);
 
     if (produto_selecionado == NULL)
     {
@@ -421,15 +421,15 @@ static void BotaoCancelarClicado()
     // Resetar o controlador da quantidade para o valor original
     if (indice_jogo_selecionado >= 0)
     {
-        ListaProdutoNó nó_item_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
+        ListaProdutoNo no_item_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
 
-        if (nó_item_selecionado != NULL)
+        if (no_item_selecionado != NULL)
         {
-            Produto *produto_selecionado = ListaProdutoNóObter(nó_item_selecionado);
+            Produto *produto_selecionado = ListaProdutoNoObter(no_item_selecionado);
 
             if (produto_selecionado == NULL)
             {
-                printf("Encontrado nó inválido na posição %d\n", indice_jogo_selecionado);
+                printf("Encontrado no inválido na posição %d\n", indice_jogo_selecionado);
                 return;
             }
 
@@ -444,19 +444,19 @@ static void BotaoSalvarClicado()
     // Salvar as mudanças no estoque
     if (indice_jogo_selecionado >= 0)
     {
-        ListaProdutoNó nó_item_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
+        ListaProdutoNo no_item_selecionado = ListaProdutoObterEmPosicao(lista_produtos, indice_jogo_selecionado);
 
-        if (nó_item_selecionado == NULL)
+        if (no_item_selecionado == NULL)
         {
             printf("Não foi possível obter o produto na posição %d\n", indice_jogo_selecionado);
             return;
         }
 
-        Produto *produto_selecionado = ListaProdutoNóObter(nó_item_selecionado);
+        Produto *produto_selecionado = ListaProdutoNoObter(no_item_selecionado);
 
         if (produto_selecionado == NULL)
         {
-            printf("Encontrado nó inválido na posição %d\n", indice_jogo_selecionado);
+            printf("Encontrado no inválido na posição %d\n", indice_jogo_selecionado);
             return;
         }
 
@@ -482,7 +482,7 @@ static void BotaoSalvarClicado()
     }
 }
 
-static void BotãoSalvarNovoJogoClicado()
+static void BotaoSalvarNovoJogoClicado()
 {
     if (strlen(nome_novo_jogo) == 0 || strlen(categoria_novo_jogo) == 0 || valor_novo_jogo_centavos <= 0)
     {

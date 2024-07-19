@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-static struct tm data_inicio = {0}; // Supondo que esta variável já esteja inicializada em outro lugar
+static struct tm data_inicio = {0}; // Supondo que esta variavel ja esteja inicializada em outro lugar
 static struct tm data_fim = {9999, 11, 31, 23, 59, 59, 0, 0, 0}; // Data muito distante
 
 // Função auxiliar para verificar se a transação está dentro do intervalo de datas
@@ -21,18 +21,18 @@ bool TransacaoDentroDoIntervalo(struct tm *tempo_transacao)
 }
 
 // Assume que Janeiro = 0
-int DiasNoMês(int mês, int ano)
+int DiasNoMes(int mes, int ano)
 {
-    struct tm time_in = {0, 0, 0, 1, mês, ano - 1900};
+    struct tm time_in = {0, 0, 0, 1, mes, ano - 1900};
     struct tm time_out;
 
-    // Passa para o próximo mês
+    // Passa para o próximo mes
     time_in.tm_mon += 1;
 
-    // time_in agora se refere ao primeiro dia do próximo mês
+    // time_in agora se refere ao primeiro dia do próximo mes
     mktime(&time_in);
 
-    // Pegamos agora o dia anterior, ou seja, o último do mês especificado
+    // Pegamos agora o dia anterior, ou seja, o último do mes especificado
     time_in.tm_mday = 0;
 
     // Normalizar novamente a estrutura
@@ -74,7 +74,7 @@ RelatorioProduto *GerarRelatorioPorProduto(int id_produto)
     while (fgets(linha, sizeof(linha), arquivo) != NULL)
     {
         sscanf(linha, FORMATO_LINHA_REGISTRO, &transacao.tipo, &transacao.id_produto, &transacao.quantidade,
-               &transacao.preço_unitario, &transacao.timestamp);
+               &transacao.preco_unitario, &transacao.timestamp);
 
         struct tm *tempo_transacao = localtime(&transacao.timestamp);
 
@@ -90,12 +90,12 @@ RelatorioProduto *GerarRelatorioPorProduto(int id_produto)
             if (transacao.tipo == IDENTIFICADOR_ENTRADA)
             {
                 relatorio->total_entradas += transacao.quantidade;
-                relatorio->custo_total += transacao.quantidade * transacao.preço_unitario;
+                relatorio->custo_total += transacao.quantidade * transacao.preco_unitario;
             }
             else if (transacao.tipo == IDENTIFICADOR_SAIDA)
             {
                 relatorio->total_saidas += transacao.quantidade;
-                relatorio->valor_total_vendas += transacao.quantidade * transacao.preço_unitario;
+                relatorio->valor_total_vendas += transacao.quantidade * transacao.preco_unitario;
             }
         }
     }
@@ -136,7 +136,7 @@ RelatorioCategoria *GerarRelatorioPorCategoria(const char *nome_categoria)
     while (fgets(linha, sizeof(linha), arquivo) != NULL)
     {
         sscanf(linha, FORMATO_LINHA_REGISTRO, &transacao.tipo, &transacao.id_produto, &transacao.quantidade,
-               &transacao.preço_unitario, &transacao.timestamp);
+               &transacao.preco_unitario, &transacao.timestamp);
 
         Produto produto = BuscarProdutoPorID(transacao.id_produto);
         if (produto.id == 0)
@@ -166,12 +166,12 @@ RelatorioCategoria *GerarRelatorioPorCategoria(const char *nome_categoria)
             if (transacao.tipo == IDENTIFICADOR_ENTRADA)
             {
                 relatorio->total_entradas += transacao.quantidade;
-                relatorio->custo_total += transacao.quantidade * transacao.preço_unitario;
+                relatorio->custo_total += transacao.quantidade * transacao.preco_unitario;
             }
             else if (transacao.tipo == IDENTIFICADOR_SAIDA)
             {
                 relatorio->total_saidas += transacao.quantidade;
-                relatorio->valor_total_vendas += transacao.quantidade * transacao.preço_unitario;
+                relatorio->valor_total_vendas += transacao.quantidade * transacao.preco_unitario;
             }
         }
     }
@@ -181,15 +181,15 @@ RelatorioCategoria *GerarRelatorioPorCategoria(const char *nome_categoria)
 }
 
 // Cria uma string que contém o nome de todos os produtos separados por ';'
-static char *CriarOpçõesParaListaProdutos()
+static char *CriarOpcoesParaListaProdutos()
 {
     ListaProduto lista = ListarProdutos();
     size_t tamanho_total = 0;
     char *separador = ";";
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *prod = ListaProdutoNóObter(nó);
+        Produto *prod = ListaProdutoNoObter(no);
 
         if (prod == NULL)
         {
@@ -199,7 +199,7 @@ static char *CriarOpçõesParaListaProdutos()
 
         tamanho_total += strlen(prod->nome);
 
-        if (ListaProdutoNóProximo(nó) != NULL)
+        if (ListaProdutoNoProximo(no) != NULL)
             tamanho_total += strlen(separador);
     }
 
@@ -213,9 +213,9 @@ static char *CriarOpçõesParaListaProdutos()
 
     *out = '\0';
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *prod = ListaProdutoNóObter(nó);
+        Produto *prod = ListaProdutoNoObter(no);
 
         if (prod == NULL)
         {
@@ -225,7 +225,7 @@ static char *CriarOpçõesParaListaProdutos()
 
         strcat(out, prod->nome);
 
-        if (ListaProdutoNóProximo(nó) != NULL)
+        if (ListaProdutoNoProximo(no) != NULL)
             strcat(out, separador);
     }
 
@@ -235,16 +235,16 @@ static char *CriarOpçõesParaListaProdutos()
 }
 
 // Cria uma string que contém o nome de todas as categorias existentes
-static char *CriarOpçõesParaListaCategorias()
+static char *CriarOpcoesParaListaCategorias()
 {
     ListaProduto lista = ListarProdutos();
     size_t tamanho_total = 0;
     char *separador = ";", *out = malloc(0);
     out[0] = '\0';
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *prod = ListaProdutoNóObter(nó);
+        Produto *prod = ListaProdutoNoObter(no);
 
         if (prod == NULL)
         {
@@ -294,14 +294,14 @@ static int seletor_tipo_relatorio_idx_selecionado = 0;
 
 // A categoria ou o produto selecionado
 static char conteudo_botao_especificar_produto[128] = "Escolha um produto";
-static char *seletor_dados_relatorio_opções = "";
+static char *seletor_dados_relatorio_opcoes = "";
 static int id_produto_selecionado;
 static char categoria_selecionada[128] = "";
 
 // Placeholders para os dados do relatório
 static char conteudo_caixa_texto_unidades_compradas[16] = "";
 static char conteudo_caixa_texto_unidades_vendidas[16] = "";
-static char conteudo_caixa_texto_balanço[16] = "";
+static char conteudo_caixa_texto_balanco[16] = "";
 static char conteudo_caixa_texto_custo_unitario[16] = "";
 static char conteudo_caixa_texto_lucro_unitario[16] = "";
 static char conteudo_caixa_texto_lucro_total[16] = "";
@@ -318,7 +318,7 @@ void RenderizarRotaRelatorios()
     {
     // Relatório por produto
     case 0:
-        seletor_dados_relatorio_opções = CriarOpçõesParaListaProdutos();
+        seletor_dados_relatorio_opcoes = CriarOpcoesParaListaProdutos();
         if (id_produto_selecionado == 0)
         {
             strcpy(conteudo_botao_especificar_produto, "Escolha um produto");
@@ -331,7 +331,7 @@ void RenderizarRotaRelatorios()
 
     // Relatório por categoria
     case 1:
-        seletor_dados_relatorio_opções = CriarOpçõesParaListaCategorias();
+        seletor_dados_relatorio_opcoes = CriarOpcoesParaListaCategorias();
 
         if (strlen(categoria_selecionada) == 0)
         {
@@ -372,7 +372,7 @@ void RenderizarRotaRelatorios()
     GuiTextBox((Rectangle){352, 208, 120, 24}, conteudo_caixa_texto_lucro_unitario, 128, false);
 
     GuiLabel((Rectangle){144, 240, 120, 24}, "Balanço:");
-    GuiTextBox((Rectangle){144, 256, 120, 24}, conteudo_caixa_texto_balanço, 128, false);
+    GuiTextBox((Rectangle){144, 256, 120, 24}, conteudo_caixa_texto_balanco, 128, false);
     GuiLabel((Rectangle){264, 256, 40, 24}, " un(s).");
 
     GuiLabel((Rectangle){352, 240, 120, 24}, "Lucro total:");
@@ -406,7 +406,7 @@ void RenderizarRotaRelatorios()
         ano_inicio_filtro = ano_atual;
 
     if (GuiValueBox((Rectangle){48, 56, 48, 24}, "", &dia_inicio_filtro, 1,
-                    DiasNoMês(mes_inicio_filtro, ano_inicio_filtro), dia_inicio_filtro_editando))
+                    DiasNoMes(mes_inicio_filtro, ano_inicio_filtro), dia_inicio_filtro_editando))
         dia_inicio_filtro_editando = !dia_inicio_filtro_editando;
     if (GuiDropdownBox((Rectangle){96, 56, 120, 24}, meses_do_ano, &mes_inicio_filtro, mes_inicio_filtro_editando))
         mes_inicio_filtro_editando = !mes_inicio_filtro_editando;
@@ -414,7 +414,7 @@ void RenderizarRotaRelatorios()
         ano_inicio_filtro_editando = !ano_inicio_filtro_editando;
 
     // Escolha data de fim do relatorio
-    if (GuiValueBox((Rectangle){360, 56, 48, 24}, "", &dia_fim_filtro, 1, DiasNoMês(mes_fim_filtro, ano_fim_filtro),
+    if (GuiValueBox((Rectangle){360, 56, 48, 24}, "", &dia_fim_filtro, 1, DiasNoMes(mes_fim_filtro, ano_fim_filtro),
                     dia_fim_filtro_editando))
         dia_fim_filtro_editando = !dia_fim_filtro_editando;
     if (GuiDropdownBox((Rectangle){408, 56, 120, 24}, meses_do_ano, &mes_fim_filtro, mes_fim_filtro_editando))
@@ -429,7 +429,7 @@ void RenderizarRotaRelatorios()
         janela_especificar_dados_ativa = !GuiWindowBox(
             (Rectangle){196, 122, 208, 168}, titulos_janela_especificar_dados[seletor_tipo_relatorio_idx_selecionado]);
 
-        GuiListView((Rectangle){204, 154, 192, 96}, seletor_dados_relatorio_opções,
+        GuiListView((Rectangle){204, 154, 192, 96}, seletor_dados_relatorio_opcoes,
                     &janela_especificar_dados_idx_rolagem, &janela_especificar_dados_idx_selecionado);
 
         if (GuiButton((Rectangle){236, 258, 120, 24}, "Salvar"))
@@ -445,11 +445,11 @@ void RenderizarRotaRelatorios()
 
 void SalvarEscolhaDadosRelatorio()
 {
-    char *copia_opções = malloc(strlen(seletor_dados_relatorio_opções) + 1);
-    strcpy(copia_opções, seletor_dados_relatorio_opções);
+    char *copia_opcoes = malloc(strlen(seletor_dados_relatorio_opcoes) + 1);
+    strcpy(copia_opcoes, seletor_dados_relatorio_opcoes);
 
     // Pode conter um nome de produto ou uma categoria
-    char *item = strtok(copia_opções, ";");
+    char *item = strtok(copia_opcoes, ";");
     int i = 0;
     while (item != NULL)
     {
@@ -501,7 +501,7 @@ void BotaoGerarRelatorioPressionado()
                  relatorio->total_entradas);
         snprintf(conteudo_caixa_texto_unidades_vendidas, sizeof(conteudo_caixa_texto_unidades_vendidas), "%d",
                  relatorio->total_saidas);
-        snprintf(conteudo_caixa_texto_balanço, sizeof(conteudo_caixa_texto_balanço), "%d",
+        snprintf(conteudo_caixa_texto_balanco, sizeof(conteudo_caixa_texto_balanco), "%d",
                  relatorio->total_entradas - relatorio->total_saidas);
         snprintf(conteudo_caixa_texto_custo_unitario, sizeof(conteudo_caixa_texto_custo_unitario), "%.2f",
                  relatorio->total_entradas ? relatorio->custo_total / relatorio->total_entradas : 0);
@@ -531,7 +531,7 @@ void BotaoGerarRelatorioPressionado()
                  relatorio->total_entradas);
         snprintf(conteudo_caixa_texto_unidades_vendidas, sizeof(conteudo_caixa_texto_unidades_vendidas), "%d",
                  relatorio->total_saidas);
-        snprintf(conteudo_caixa_texto_balanço, sizeof(conteudo_caixa_texto_balanço), "%d",
+        snprintf(conteudo_caixa_texto_balanco, sizeof(conteudo_caixa_texto_balanco), "%d",
                  relatorio->total_entradas - relatorio->total_saidas);
         snprintf(conteudo_caixa_texto_custo_unitario, sizeof(conteudo_caixa_texto_custo_unitario), "%.2f",
                  relatorio->total_entradas ? relatorio->custo_total / relatorio->total_entradas : 0);

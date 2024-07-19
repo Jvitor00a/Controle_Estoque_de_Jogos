@@ -10,7 +10,7 @@ typedef struct
     char tipo;
     int id_produto;
     int quantidade;
-    double preço_unitario;
+    double preco_unitario;
     long timestamp;
 } Transacao;
 

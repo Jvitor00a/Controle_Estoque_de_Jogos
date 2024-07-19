@@ -61,7 +61,7 @@ that define INCLUDE_LIST_TYPE_INL
     e.g ListIntNew
 */
 #define LIST_NEW CAT2(LIST_TYPE, Nova)
-#define LIST_NODE CAT2(LIST_TYPE, Nó)
+#define LIST_NODE CAT2(LIST_TYPE, No)
 #define LIST_DISPOSE CAT2(LIST_TYPE, Descartar)
 #define LIST_COPY_INIT CAT2(LIST_TYPE, CopiaInicial)
 #define LIST_COPY CAT2(LIST_TYPE, Copia)

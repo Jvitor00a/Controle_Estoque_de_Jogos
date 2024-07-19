@@ -49,9 +49,9 @@ static void SalvarProdutos()
         return;
     }
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista_produtos); nó != NULL; nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNo no = ListaProdutoInicio(lista_produtos); no != NULL; no = ListaProdutoNoProximo(no))
     {
-        Produto *produto = ListaProdutoNóObter(nó);
+        Produto *produto = ListaProdutoNoObter(no);
 
         if (produto == NULL)
         {
