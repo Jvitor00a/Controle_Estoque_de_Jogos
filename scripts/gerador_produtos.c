@@ -30,7 +30,7 @@ void GerarCategoriaProduto(char *categoria)
 // Função principal para gerar a lista de produtos
 int main()
 {
-    FILE *file = fopen("data/produtos.txt", "w");
+    FILE *file = fopen("produtos.txt", "w");
     if (file == NULL)
     {
         printf("Erro ao abrir o arquivo para escrita.\n");

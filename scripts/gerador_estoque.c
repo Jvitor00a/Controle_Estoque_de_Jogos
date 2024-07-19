@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define ARQUIVO_REGISTRO "data/estoque.txt"
+#define ARQUIVO_REGISTRO "estoque.txt"
 #define PREFIXO_ENTRADA 'E'
 #define PREFIXO_SAIDA 'S'
 #define FORMATO_LINHA_REGISTRO "%c %d %d %lf %ld\n"

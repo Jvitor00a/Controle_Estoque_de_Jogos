@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#define ARQUIVO_REGISTRO "data/estoque.txt"
+#define ARQUIVO_REGISTRO "estoque.txt"
 #define IDENTIFICADOR_ENTRADA 'E'
 #define IDENTIFICADOR_SAIDA 'S'
 // Respectivamente: E/S id_produto quantidade valor_unitario timestamp

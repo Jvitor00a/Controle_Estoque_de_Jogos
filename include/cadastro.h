@@ -4,7 +4,7 @@
 #include "lista_produto.h"
 #include <stdbool.h>
 
-#define ARQUIVO_PRODUTOS "data/produtos.txt"
+#define ARQUIVO_PRODUTOS "produtos.txt"
 
 ListaProduto ListarProdutos();
 

@@ -9,7 +9,7 @@
 
 Produto BuscarProdutoPorID(int id)
 {
-    FILE *file = fopen("data/produtos.txt", "r");
+    FILE *file = fopen(ARQUIVO_PRODUTOS, "r");
     Produto produto;
     Produto produto_nao_encontrado = {0, "", "", 0.0};
 
@@ -34,7 +34,7 @@ Produto BuscarProdutoPorID(int id)
 
 Produto BuscarProdutoPorNome(char *nome)
 {
-    FILE *file = fopen("data/produtos.txt", "r");
+    FILE *file = fopen(ARQUIVO_PRODUTOS, "r");
     Produto produto;
     Produto produto_nao_encontrado = {0, "", "", 0.0};
 
