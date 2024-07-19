@@ -88,23 +88,23 @@ bool isNumber(const char *str)
 }
 
 // Textos constantes parte da interface
-const char *etiqueta_id = "Id";
-const char *etiqueta_nome = "Nome";
-const char *etiqueta_categoria = "Categoria";
-const char *etiqueta_valor = "Valor";
-const char *etiqueta_quantidade = "Quantidade";
+static const char *etiqueta_id = "Id";
+static const char *etiqueta_nome = "Nome";
+static const char *etiqueta_categoria = "Categoria";
+static const char *etiqueta_valor = "Valor";
+static const char *etiqueta_quantidade = "Quantidade";
 
 // Variáveis da interface
-char texto_resultado_busca[128] = "Digite o termo de busca na caixa de texto acima";
-bool editando_caixa_texto_pesquisa = false;
-char termo_busca[128] = "";
-bool produto_encontrado_com_sucesso = false;
+static char texto_resultado_busca[128] = "Digite o termo de busca na caixa de texto acima";
+static bool editando_caixa_texto_pesquisa = false;
+static char termo_busca[128] = "";
+static bool produto_encontrado_com_sucesso = false;
 // Variáveis do produto pesquisado
-char id_produto[128] = "001";
-char nome_produto[128] = "Nome do produto";
-char categoria_produto[128] = "Categoria1";
-char valor_produto[128] = "100.00";
-char qtd_produto[128] = "999";
+static char id_produto[128] = "001";
+static char nome_produto[128] = "Nome do produto";
+static char categoria_produto[128] = "Categoria1";
+static char valor_produto[128] = "100.00";
+static char qtd_produto[128] = "999";
 
 void EditarCaixaTextoPesquisa();
 

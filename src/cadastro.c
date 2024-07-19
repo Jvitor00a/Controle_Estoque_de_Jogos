@@ -1,5 +1,7 @@
 #include "cadastro.h"
 #include "lista_produto.h"
+#include "raygui.h"
+#include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,8 +49,7 @@ static void SalvarProdutos()
         return;
     }
 
-    for (ListaProdutoNó nó = ListaProdutoInicio(lista_produtos); nó != ListaProdutoFim(lista_produtos);
-         nó = ListaProdutoNóProximo(nó))
+    for (ListaProdutoNó nó = ListaProdutoInicio(lista_produtos); nó != NULL; nó = ListaProdutoNóProximo(nó))
     {
         Produto *produto = ListaProdutoNóObter(nó);
 

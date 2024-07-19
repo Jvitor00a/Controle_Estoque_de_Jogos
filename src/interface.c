@@ -21,8 +21,6 @@ typedef enum InterfaceRotas
 static void PopularListaRotas(char *);
 
 Rota lista_rotas[] = {
-    {.nome = "Vender"},
-    {.nome = "Produtos"},
     {.nome = "Estoque", .fnRenderizarRota = RenderizarRotaEstoque, .fnInicializarRota = InicializarRotaEstoque},
     {.nome = "Pesquisar", .fnRenderizarRota = RenderizarRotaDePesquisa},
     {.nome = "Relatorios", .fnRenderizarRota = RenderizarRotaRelatorios}};
@@ -58,7 +56,7 @@ void RenderizarRotaSelecionada(int selecionada)
 void RodarInterface()
 {
     int screenWidth = 600;
-    int screenHeight = 400;
+    int screenHeight = 380;
 
     InitWindow(screenWidth, screenHeight, "Games Warehouse");
     SetTargetFPS(60);

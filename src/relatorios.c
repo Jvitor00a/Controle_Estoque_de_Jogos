@@ -273,44 +273,44 @@ static char *CriarOpçõesParaListaCategorias()
 void BotaoGerarRelatorioPressionado();
 
 // Limite inferior da data das transações que entrarão no relatório
-bool dia_inicio_filtro_editando = false;
-int dia_inicio_filtro = 0;
-bool mes_inicio_filtro_editando = false;
-int mes_inicio_filtro = 0;
-bool ano_inicio_filtro_editando = false;
-int ano_inicio_filtro = -1;
+static bool dia_inicio_filtro_editando = false;
+static int dia_inicio_filtro = 0;
+static bool mes_inicio_filtro_editando = false;
+static int mes_inicio_filtro = 0;
+static bool ano_inicio_filtro_editando = false;
+static int ano_inicio_filtro = -1;
 
 // Limite superior da data das transações que entrarão no relatório
-bool dia_fim_filtro_editando = false;
-int dia_fim_filtro = 31;
-bool mes_fim_filtro_editando = false;
-int mes_fim_filtro = 11; // Dezembro
-bool ano_fim_filtro_editando = false;
-int ano_fim_filtro = -1;
+static bool dia_fim_filtro_editando = false;
+static int dia_fim_filtro = 31;
+static bool mes_fim_filtro_editando = false;
+static int mes_fim_filtro = 11; // Dezembro
+static bool ano_fim_filtro_editando = false;
+static int ano_fim_filtro = -1;
 
 // Tipo de relatório (por produto ou por categoria)
-bool seletor_tipo_relatorio_editando = false;
-int seletor_tipo_relatorio_idx_selecionado = 0;
+static bool seletor_tipo_relatorio_editando = false;
+static int seletor_tipo_relatorio_idx_selecionado = 0;
 
 // A categoria ou o produto selecionado
-char conteudo_botao_especificar_produto[128] = "Escolha um produto";
-char *seletor_dados_relatorio_opções = "";
-int id_produto_selecionado;
-char categoria_selecionada[128] = "";
+static char conteudo_botao_especificar_produto[128] = "Escolha um produto";
+static char *seletor_dados_relatorio_opções = "";
+static int id_produto_selecionado;
+static char categoria_selecionada[128] = "";
 
 // Placeholders para os dados do relatório
-char conteudo_caixa_texto_unidades_compradas[16] = "";
-char conteudo_caixa_texto_unidades_vendidas[16] = "";
-char conteudo_caixa_texto_balanço[16] = "";
-char conteudo_caixa_texto_custo_unitario[16] = "";
-char conteudo_caixa_texto_lucro_unitario[16] = "";
-char conteudo_caixa_texto_lucro_total[16] = "";
+static char conteudo_caixa_texto_unidades_compradas[16] = "";
+static char conteudo_caixa_texto_unidades_vendidas[16] = "";
+static char conteudo_caixa_texto_balanço[16] = "";
+static char conteudo_caixa_texto_custo_unitario[16] = "";
+static char conteudo_caixa_texto_lucro_unitario[16] = "";
+static char conteudo_caixa_texto_lucro_total[16] = "";
 
-bool janela_especificar_dados_ativa = false;
-int janela_especificar_dados_idx_rolagem = 0;
-int janela_especificar_dados_idx_selecionado = 0;
-char *titulos_janela_especificar_dados[] = {"Selecionar produto", "Selecionar categoria"};
-int ano_atual;
+static bool janela_especificar_dados_ativa = false;
+static int janela_especificar_dados_idx_rolagem = 0;
+static int janela_especificar_dados_idx_selecionado = 0;
+static char *titulos_janela_especificar_dados[] = {"Selecionar produto", "Selecionar categoria"};
+static int ano_atual;
 
 void RenderizarRotaRelatorios()
 {
@@ -344,9 +344,11 @@ void RenderizarRotaRelatorios()
         break;
     }
 
-    if (mes_inicio_filtro_editando || mes_fim_filtro_editando || seletor_tipo_relatorio_editando ||
-        janela_especificar_dados_ativa)
+    if (mes_inicio_filtro_editando || mes_fim_filtro_editando || seletor_tipo_relatorio_editando)
         GuiLock();
+
+    if (janela_especificar_dados_ativa)
+        GuiDisable();
 
     /**
      * As chamadas de função para renderizar os dados do relatório devem aparecer primeiro pois
@@ -422,7 +424,7 @@ void RenderizarRotaRelatorios()
 
     if (janela_especificar_dados_ativa)
     {
-        GuiUnlock();
+        GuiEnable();
 
         janela_especificar_dados_ativa = !GuiWindowBox(
             (Rectangle){196, 122, 208, 168}, titulos_janela_especificar_dados[seletor_tipo_relatorio_idx_selecionado]);
@@ -437,6 +439,7 @@ void RenderizarRotaRelatorios()
         }
     }
 
+    GuiEnable();
     GuiUnlock();
 }
 

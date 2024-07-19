@@ -22,5 +22,6 @@ typedef struct ResultadoCadastro
 } ResultadoCadastro;
 
 ResultadoCadastro CadastrarProduto(char *nome, char *categoria, float);
+void RenderizarRotaProdutos();
 
 #endif
